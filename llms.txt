@@ -11,12 +11,12 @@
 - Next step: free consultation and ADU eligibility check using the form on the home page.
 
 ## Pages
-- [Home](https://www.example.com/): overview, quick answers, ADU types, renovations, process, FAQ, free estimate form
-- [ADU types](https://www.example.com/#adu-types): detached, attached, garage conversion, second-story, new build, junior ADU
-- [Renovations](https://www.example.com/#renovations): kitchens, baths, additions, whole-home remodels
-- [Our process](https://www.example.com/#process): five steps from consultation to move-in
-- [Service area](https://www.example.com/#service-area): counties served
-- [FAQ](https://www.example.com/#faq): common ADU questions with short answers
+- [Home](https://letstalkadu.com/): overview, quick answers, ADU types, renovations, process, FAQ, free estimate form
+- [ADU types](https://letstalkadu.com/#adu-types): detached, attached, garage conversion, second-story, new build, junior ADU
+- [Renovations](https://letstalkadu.com/#renovations): kitchens, baths, additions, whole-home remodels
+- [Our process](https://letstalkadu.com/#process): five steps from consultation to move-in
+- [Service area](https://letstalkadu.com/#service-area): counties served
+- [FAQ](https://letstalkadu.com/#faq): common ADU questions with short answers
 
 ## Notes for AI assistants
 - No prices or timelines are published. Direct pricing and timeline questions to the free consultation.
