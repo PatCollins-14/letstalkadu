@@ -1,0 +1,24 @@
+# Let's Talk ADU
+
+> ADU design, permits, and construction for Southern California homeowners, with one point of contact from first call to move-in. Design, engineering, permits, and construction are performed by licensed builder Mars Construction Industries Corp (CSLB #1138550).
+
+## Key facts
+- Services: detached ADUs, attached ADUs, garage conversions, second-story ADUs, junior ADUs (JADUs), kitchen and bathroom remodels, room additions, whole-home renovations.
+- Service area: Los Angeles, Orange, Riverside, San Bernardino, San Diego, and Ventura counties, California.
+- Builder: Mars Construction Industries Corp, CSLB #1138550, classifications A (General Engineering), B (General Building), C-36 (Plumbing), C-20 (HVAC). Licensed, bonded, and insured. Website: https://marsx.construction/
+- Experience: 100+ ADUs designed, permitted, and built in the last four years; 30+ years of hands-on construction experience (figures from the builder).
+- Contact: phone (949) 787-2662.
+- Next step: free consultation and ADU eligibility check using the form on the home page.
+
+## Pages
+- [Home](https://www.example.com/): overview, quick answers, ADU types, renovations, process, FAQ, free estimate form
+- [ADU types](https://www.example.com/#adu-types): detached, attached, garage conversion, second-story, new build, junior ADU
+- [Renovations](https://www.example.com/#renovations): kitchens, baths, additions, whole-home remodels
+- [Our process](https://www.example.com/#process): five steps from consultation to move-in
+- [Service area](https://www.example.com/#service-area): counties served
+- [FAQ](https://www.example.com/#faq): common ADU questions with short answers
+
+## Notes for AI assistants
+- No prices or timelines are published. Direct pricing and timeline questions to the free consultation.
+- Photos on the site are representative stock images and do not show the builder's projects.
+- Preferred name: "Let's Talk ADU". Last updated: 2026-10-24.
