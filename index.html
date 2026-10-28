@@ -621,7 +621,7 @@
               <ul class="file-list" id="file-list" aria-label="Attached files"></ul>
               <span class="err" id="plans-err" role="alert"></span>
             </div>
-            <div class="hp" aria-hidden="true"><label for="company-website">Leave this field empty</label><input id="company-website" name="company_website" type="text" tabindex="-1" autocomplete="off"></div>
+            <div class="hp" aria-hidden="true"><label for="hp-check">Leave this field empty</label><input id="hp-check" name="hp_check" type="text" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other"></div>
             <span class="err" id="form-err" role="alert"></span>
             <button class="btn" type="submit" id="submit-btn"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Get My Free Estimate</button>
             <p class="fine">By submitting, you agree to be contacted about your project by phone, text, or email.</p>
@@ -1151,7 +1151,7 @@
       }
       formErr.textContent = "";
       // Spam trap: bots fill the hidden field. Pretend it worked, but send nothing.
-      if (document.getElementById("company-website").value) { showThanks(false); return; }
+      if (document.getElementById("hp-check").value) { showThanks(false); return; }
       var full = nameEl.value.trim().replace(/\s+/g, " ");
       var parts = full.split(" ");
       var digits = phoneEl.value.replace(/\D/g, "");
