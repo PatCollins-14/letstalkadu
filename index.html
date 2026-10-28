@@ -241,6 +241,8 @@
   .err:empty { display: none; }
   .field .opt { font-weight: 400; color: var(--muted); }
   .field ::placeholder { color: #8a96a2; opacity: 1; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .btn[disabled] { opacity: .7; cursor: progress; }
   .upload-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 44px; padding: 10px 16px; background: var(--white); color: var(--navy); border: 2px solid var(--orange); font: 700 15px/1.2 var(--sans); letter-spacing: -0.01em; cursor: pointer; transition: background .15s ease; }
   .upload-btn:hover { background: #fff3da; }
   .upload-btn svg { width: 20px; height: 20px; color: var(--orange); flex: none; }
@@ -587,7 +589,7 @@
       </div>
 
       <div class="form-card" id="estimate">
-        <form id="lead-form" name="adu-lead" method="post" enctype="multipart/form-data" autocomplete="on" novalidate>
+        <form id="lead-form" name="adu-lead" autocomplete="on" novalidate>
           <p class="kicker">Takes 30 seconds. No obligation.</p>
           <h2>Check Your Property’s ADU Eligibility</h2>
           <p class="sub">A member of our team replies within 1 business day.</p>
@@ -614,8 +616,9 @@
               <ul class="file-list" id="file-list" aria-label="Attached files"></ul>
               <span class="err" id="plans-err" role="alert"></span>
             </div>
+            <div class="hp" aria-hidden="true"><label for="company-website">Leave this field empty</label><input id="company-website" name="company_website" type="text" tabindex="-1" autocomplete="off"></div>
             <span class="err" id="form-err" role="alert"></span>
-            <button class="btn" type="submit"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Get My Free Estimate</button>
+            <button class="btn" type="submit" id="submit-btn"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Get My Free Estimate</button>
             <p class="fine">By submitting, you agree to be contacted about your project by phone, text, or email.</p>
           </div>
         </form>
@@ -1077,8 +1080,29 @@
     plansEl.addEventListener("change", function () { addFiles(plansEl.files); });
     uploadBtn.addEventListener("click", function () { plansEl.click(); });
 
+    // Lead delivery: posts to a GoHighLevel inbound webhook (workflow adds the contact, tags it, and sends the email).
+    // The webhook URL can only add data to the CRM, so it is safe to ship in public page code. Never put an API key here.
+    var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/undefined";
+    var submitBtn = document.getElementById("submit-btn");
+    var submitting = false;
+    function utm() {
+      var out = {};
+      try {
+        var p = new URLSearchParams(location.search);
+        ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "gbraid", "wbraid", "fbclid"].forEach(function (k) { if (p.get(k)) out[k] = p.get(k); });
+      } catch (e) {}
+      return out;
+    }
+    function showThanks() {
+      document.getElementById("success-name").textContent = nameEl.value.trim().split(/\s+/)[0];
+      document.getElementById("success-files").textContent = chosen.length ? " and " + chosen.length + (chosen.length === 1 ? " file" : " files") : "";
+      clearDraft();
+      form.hidden = true;
+      document.getElementById("success").hidden = false;
+    }
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (submitting) return;
       var bad = validate();
       if (bad.length) {
         formErr.textContent = "Please fix the highlighted " + (bad.length === 1 ? "field" : "fields") + ".";
@@ -1086,13 +1110,46 @@
         return;
       }
       formErr.textContent = "";
-      // Connect your CRM or form backend here. FormData includes every field plus the attached files:
-      // fetch(YOUR_ENDPOINT, { method: "POST", body: new FormData(form) })
-      document.getElementById("success-name").textContent = nameEl.value.trim().split(/\s+/)[0];
-      document.getElementById("success-files").textContent = chosen.length ? " and " + chosen.length + (chosen.length === 1 ? " file" : " files") : "";
-      clearDraft();
-      form.hidden = true;
-      document.getElementById("success").hidden = false;
+      // Spam trap: bots fill the hidden field. Pretend it worked, but send nothing.
+      if (document.getElementById("company-website").value) { showThanks(); return; }
+      var full = nameEl.value.trim().replace(/\s+/g, " ");
+      var parts = full.split(" ");
+      var digits = phoneEl.value.replace(/\D/g, "");
+      if (digits.length === 10) digits = "1" + digits;
+      var payload = Object.assign({
+        name: full,
+        first_name: parts[0],
+        last_name: parts.slice(1).join(" "),
+        email: emailEl.value.trim().toLowerCase(),
+        phone: digits.length >= 11 ? "+" + digits : phoneEl.value.trim(),
+        source: "letstalkadu.com landing page",
+        page_url: location.href.split("#")[0],
+        attachments_count: chosen.length,
+        attachments: chosen.map(function (f) { return f.name; }).join(", "),
+        submitted_at: new Date().toISOString()
+      }, utm());
+      submitting = true;
+      submitBtn.disabled = true;
+      var label = submitBtn.innerHTML;
+      submitBtn.textContent = "Sending...";
+      var ctl = ("AbortController" in window) ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+      fetch(GHL_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: ctl ? ctl.signal : undefined
+      }).then(function (res) {
+        clearTimeout(timer);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        showThanks();
+      }).catch(function () {
+        clearTimeout(timer);
+        submitting = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = label;
+        formErr.textContent = "We couldn’t send your request. Please try again, or call us at (949) 787-2662.";
+      });
     });
   })();
 </script>
