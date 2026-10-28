@@ -206,11 +206,18 @@
   .hero::before { z-index: 1; pointer-events: none; }
   .hero .wrap { position: relative; z-index: 2; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 72px); align-items: center; padding-block: clamp(48px, 7vw, 96px); }
   .hero-copy { display: grid; gap: 22px; min-width: 0; }
-  .hero h1 { font-size: clamp(46px, 6.4vw, 82px); letter-spacing: -0.045em; line-height: 1; }
+  .hero h1 { font-size: clamp(46px, 6.4vw, 82px); letter-spacing: -0.045em; line-height: 1; font-weight: 700; width: fit-content; max-width: 100%; justify-self: start; }
   .hero h1 .h1-top, .hero h1 .h1-sub { display: block; }
-  .hero h1 .h1-sub { font-size: .56em; line-height: 1.15; letter-spacing: -0.02em; margin-top: .1em; }
-  .hero h1 .amp { color: var(--orange); font-size: 1.15em; font-weight: 600; }
-  .hero h1 .script { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-weight: 700; font-size: 1.4em; letter-spacing: 0; line-height: .8; color: #8fd3ff; padding-left: .04em; }
+  .hero h1 .h1-top { white-space: nowrap; }
+  /* "ADU" in the sky-blue brand gradient; drop-shadow instead of text-shadow because the fill is clipped to the letters */
+  .hero h1 .h1-accent { background: linear-gradient(100deg, #399cda 0%, #6cc0f2 55%, #a6dcff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #6cc0f2; text-shadow: none; filter: drop-shadow(0 1px 10px rgba(12, 28, 60, .5)); }
+  /* second line sits flush with the right edge of "ADU", like a signature */
+  .hero h1 .h1-sub { font-size: .56em; line-height: 1; letter-spacing: -0.02em; margin-top: .12em; text-align: right; }
+  .hero h1 .amp, .hero h1 .script { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-weight: 700; letter-spacing: 0; display: inline-block; line-height: .85; }
+  .hero h1 .amp { color: #8fd3ff; font-size: 1.5em; transform: rotate(-4deg); margin-right: .05em; }
+  .hero h1 .script { color: var(--orange); font-size: 1.5em; transform: rotate(-3deg); transform-origin: 100% 100%; }
+  /* tapered swoosh that sweeps down to the right, light blue to blue to orange */
+  .hero h1 .swoosh { display: block; width: 100%; height: .72em; margin-top: -.04em; overflow: visible; }
   /* keeps the headline, intro and checks readable even before the photo has loaded or over its brightest parts */
   .hero h1, .hero-copy > p, .hero-checks { text-shadow: 0 1px 16px rgba(12, 28, 60, .55); }
   .hero-copy > p { font-size: 18px; max-width: 54ch; color: rgba(255,255,255,.88); }
@@ -579,7 +586,7 @@
     <div class="hero-photo" aria-hidden="true"></div>
     <div class="wrap">
       <div class="hero-copy">
-        <h1 id="hero-title"><span class="h1-top">Let’s Talk ADU</span><span class="h1-sub"><span class="amp">&amp;</span> <span class="script">Remodeling</span></span></h1>
+        <h1 id="hero-title"><span class="h1-top">Let’s Talk <span class="h1-accent">ADU</span></span><span class="h1-sub"><span class="amp">&amp;</span> <span class="script">Remodeling</span><svg class="swoosh" viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="swoosh-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a6dcff"/><stop offset=".5" stop-color="#399cda"/><stop offset="1" stop-color="#e89915"/></linearGradient></defs><path d="M0 6 C80 -2 210 2 300 36 C215 12 90 10 0 6 Z" fill="url(#swoosh-grad)"/></svg></span></h1>
         <p>Design, engineering, permits, and construction, all handled in-house by one licensed team. Earn rental income, keep family close, or finally get the home you want, without the usual contractor headaches.</p>
         <ul class="hero-checks">
           <li><svg aria-hidden="true"><use href="#i-check"/></svg>100+ ADUs designed, permitted, and built in the last four years</li>
