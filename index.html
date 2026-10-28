@@ -1080,9 +1080,12 @@
     plansEl.addEventListener("change", function () { addFiles(plansEl.files); });
     uploadBtn.addEventListener("click", function () { plansEl.click(); });
 
-    // Lead delivery: posts to a GoHighLevel inbound webhook (workflow adds the contact, tags it, and sends the email).
-    // The webhook URL can only add data to the CRM, so it is safe to ship in public page code. Never put an API key here.
+    // Lead delivery: uploads any attached files to Uploadcare, then posts the lead (with file links) to a GoHighLevel
+    // inbound webhook. Both values below are public by design: the Uploadcare PUBLIC key can only upload, and the
+    // webhook URL can only add data to the CRM. Never put a secret key or API token in this file.
     var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/jZSKJkOxYCiKBnJvfyoo";
+    var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
+    var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net"; // project CDN address for this public key
     var submitBtn = document.getElementById("submit-btn");
     var submitting = false;
     function utm() {
@@ -1093,9 +1096,41 @@
       } catch (e) {}
       return out;
     }
-    function showThanks() {
+    function withTimeout(ms) {
+      var ctl = ("AbortController" in window) ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
+      return { signal: ctl ? ctl.signal : undefined, done: function () { clearTimeout(timer); } };
+    }
+    function uploadOne(file) {
+      var fd = new FormData();
+      fd.append("UPLOADCARE_PUB_KEY", UPLOADCARE_PUB_KEY);
+      fd.append("UPLOADCARE_STORE", "1");
+      fd.append("file", file, file.name);
+      var t = withTimeout(120000);
+      return fetch("https://upload.uploadcare.com/base/", { method: "POST", body: fd, signal: t.signal })
+        .then(function (res) { t.done(); if (!res.ok) throw new Error("upload " + res.status); return res.json(); })
+        .then(function (j) {
+          if (!j || !j.file) throw new Error("upload: no file id");
+          return UPLOADCARE_CDN + "/" + j.file + "/" + encodeURIComponent(file.name);
+        }, function (e) { t.done(); throw e; });
+    }
+    // Uploads one at a time so a slow phone connection isn't flooded. A failed file never blocks the lead.
+    function uploadAll(files, onProgress) {
+      var links = [], failed = 0, chain = Promise.resolve();
+      files.forEach(function (f, i) {
+        chain = chain.then(function () {
+          onProgress(i + 1, files.length);
+          return uploadOne(f).then(function (url) { links.push(url); }, function () { failed++; });
+        });
+      });
+      return chain.then(function () { return { links: links, failed: failed }; });
+    }
+    function showThanks(failedUploads) {
       document.getElementById("success-name").textContent = nameEl.value.trim().split(/\s+/)[0];
-      document.getElementById("success-files").textContent = chosen.length ? " and " + chosen.length + (chosen.length === 1 ? " file" : " files") : "";
+      document.getElementById("success-files").textContent = failedUploads
+        ? " (your files didn’t upload, so we may ask you to email them)"
+        : (chosen.length ? " and " + chosen.length + (chosen.length === 1 ? " file" : " files") : "");
+      submitting = false;
       clearDraft();
       form.hidden = true;
       document.getElementById("success").hidden = false;
@@ -1111,40 +1146,46 @@
       }
       formErr.textContent = "";
       // Spam trap: bots fill the hidden field. Pretend it worked, but send nothing.
-      if (document.getElementById("company-website").value) { showThanks(); return; }
+      if (document.getElementById("company-website").value) { showThanks(false); return; }
       var full = nameEl.value.trim().replace(/\s+/g, " ");
       var parts = full.split(" ");
       var digits = phoneEl.value.replace(/\D/g, "");
       if (digits.length === 10) digits = "1" + digits;
-      var payload = Object.assign({
-        name: full,
-        first_name: parts[0],
-        last_name: parts.slice(1).join(" "),
-        email: emailEl.value.trim().toLowerCase(),
-        phone: digits.length >= 11 ? "+" + digits : phoneEl.value.trim(),
-        source: "letstalkadu.com landing page",
-        page_url: location.href.split("#")[0],
-        attachments_count: chosen.length,
-        attachments: chosen.map(function (f) { return f.name; }).join(", "),
-        submitted_at: new Date().toISOString()
-      }, utm());
       submitting = true;
       submitBtn.disabled = true;
       var label = submitBtn.innerHTML;
-      submitBtn.textContent = "Sending...";
-      var ctl = ("AbortController" in window) ? new AbortController() : null;
-      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
-      fetch(GHL_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: ctl ? ctl.signal : undefined
-      }).then(function (res) {
-        clearTimeout(timer);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        showThanks();
+      submitBtn.textContent = chosen.length ? "Uploading files..." : "Sending...";
+      var filesToSend = chosen.slice();
+      uploadAll(filesToSend, function (n, total) {
+        submitBtn.textContent = "Uploading file " + n + " of " + total + "...";
+      }).then(function (up) {
+        submitBtn.textContent = "Sending...";
+        var payload = Object.assign({
+          name: full,
+          first_name: parts[0],
+          last_name: parts.slice(1).join(" "),
+          email: emailEl.value.trim().toLowerCase(),
+          phone: digits.length >= 11 ? "+" + digits : phoneEl.value.trim(),
+          source: "letstalkadu.com landing page",
+          page_url: location.href.split("#")[0],
+          attachments_count: filesToSend.length,
+          attachments: filesToSend.map(function (f) { return f.name; }).join(", "),
+          attachment_links: up.links.join(", "),
+          attachments_failed: up.failed,
+          submitted_at: new Date().toISOString()
+        }, utm());
+        var t = withTimeout(15000);
+        return fetch(GHL_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: t.signal
+        }).then(function (res) {
+          t.done();
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          showThanks(up.failed > 0);
+        }, function (err) { t.done(); throw err; });
       }).catch(function () {
-        clearTimeout(timer);
         submitting = false;
         submitBtn.disabled = false;
         submitBtn.innerHTML = label;
