@@ -153,6 +153,8 @@
   h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.1; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
   h3 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
   p { margin: 0; }
+  /* no lone last word on its own line (Pat's rule) */
+  p, li, summary, .btn, .ba-tabs button { text-wrap: pretty; }
   a { color: inherit; }
   img, svg { max-width: 100%; }
   .wrap { max-width: 1200px; margin: 0 auto; padding-left: var(--gl); padding-right: var(--gr); }
@@ -269,10 +271,33 @@
   .also span { padding: 6px 12px; background: var(--mist); border-left: 3px solid var(--orange); font-weight: 700; }
   .note { margin-top: 14px; text-align: center; font-size: 12px; color: var(--muted); }
 
+  /* Before & after slider: the before photo sits on top, clipped to the left of --pos */
+  .ba-band { background: var(--mist); }
+  .ba { max-width: 900px; margin: 0 auto; }
+  .ba-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .ba-tabs button { flex: none; min-height: 44px; padding: 10px 16px; border: 2px solid var(--line); background: var(--white); color: var(--navy); font: 700 14px/1.2 var(--sans); letter-spacing: -0.01em; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .ba-tabs button:hover { border-color: var(--orange); }
+  .ba-tabs button[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .ba-view { position: relative; aspect-ratio: 1400 / 930; overflow: hidden; background: #dfe5ea; user-select: none; -webkit-user-select: none; box-shadow: 0 18px 40px rgba(24,45,92,.18); }
+  .ba-view img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .ba-before { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .ba-handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 3px; margin-left: -1.5px; background: var(--white); box-shadow: 0 0 10px rgba(0,0,0,.35); pointer-events: none; }
+  .ba-handle::after {
+    content: ""; position: absolute; top: 50%; left: 50%; width: 48px; height: 48px; transform: translate(-50%, -50%);
+    border: 3px solid var(--white); border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    background: rgba(24,45,92,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l-6 6 6 6zM15 6l6 6-6 6z' fill='white'/%3E%3C/svg%3E") center / 24px no-repeat;
+  }
+  .ba-view:has(.ba-range:focus-visible) .ba-handle::after { outline: 3px solid var(--orange); outline-offset: 2px; }
+  .ba-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: pan-y; -webkit-appearance: none; appearance: none; }
+  .ba-tag { position: absolute; top: 14px; padding: 5px 10px; background: rgba(24,45,92,.85); color: var(--white); font: 900 11px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
+  .ba-tag-before { left: 14px; }
+  .ba-tag-after { right: 14px; background: var(--orange); }
+  .ba-cap { margin: 14px auto 0; max-width: 60ch; text-align: center; color: var(--ink); font-weight: 700; }
+
   /* Steps */
-  .steps-band { background: var(--mist); }
+  .steps-band { background: var(--white); }
   .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: step; }
-  .steps li { background: var(--white); padding: 22px 20px; border-top: 3px solid var(--orange); display: grid; gap: 8px; align-content: start; min-width: 0; counter-increment: step; }
+  .steps li { background: var(--mist); padding: 22px 20px; border-top: 3px solid var(--orange); display: grid; gap: 8px; align-content: start; min-width: 0; counter-increment: step; }
   .steps li::before { content: counter(step); width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: var(--white); display: grid; place-items: center; font: 700 16px/1 var(--serif); }
   .steps h3 { font-size: 19px; color: var(--navy); }
   .steps p { font-size: 15px; color: var(--muted); }
@@ -369,6 +394,12 @@
     .type p { font-size: 14px; }
     .steps li { grid-template-columns: 34px 1fr; column-gap: 14px; padding: 18px 16px; }
     .steps li::before { grid-row: span 2; }
+    .ba-tabs { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); scroll-padding-inline: var(--gl); }
+    .ba-tabs::-webkit-scrollbar { display: none; }
+    .ba-handle::after { width: 42px; height: 42px; background-size: 20px; }
+    .ba-tag { top: 10px; font-size: 10px; }
+    .ba-tag-before { left: 10px; }
+    .ba-tag-after { right: 10px; }
     .faq-item summary { font-size: 16px; padding: 14px 46px 14px 16px; }
     .faq-a { padding: 0 16px 16px; }
   }
@@ -496,6 +527,35 @@
     </div>
   </section>
 
+  <!-- Before & after -->
+  <section class="band ba-band" id="before-after" aria-labelledby="ba-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 class="h2" id="ba-title">See the <em>Difference</em></h2>
+        <p class="lead">Pick a project, then drag the slider to compare before and&nbsp;after.</p>
+      </div>
+      <div class="ba" id="ba">
+        <div class="ba-tabs" role="tablist" aria-label="Example projects">
+          <button type="button" role="tab" id="ba-tab-garage" aria-selected="true" aria-controls="ba-panel" data-img="garage" data-alt-before="Old detached garage with a worn roll-up door and cracked driveway" data-alt-after="The same garage converted into a studio ADU with a glass entry door and windows" data-cap="An unused garage turned into a rentable studio with its own&nbsp;entry.">Garage Conversion</button>
+          <button type="button" role="tab" id="ba-tab-backyard" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="backyard" data-alt-before="Empty backyard with dry patchy grass and an old wood fence" data-alt-after="The same backyard with a new detached ADU cottage, lawn, and paver path" data-cap="An empty backyard turned into a detached ADU with its own front&nbsp;porch.">Backyard ADU</button>
+          <button type="button" role="tab" id="ba-tab-kitchen" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="kitchen" data-alt-before="Dated kitchen with honey oak cabinets, white appliances, and a tiled island" data-alt-after="The same kitchen remodeled with white shaker cabinets, a quartz island, and stainless appliances" data-cap="A 1990s kitchen updated with new cabinets, a quartz island, and stainless&nbsp;appliances.">Kitchen Remodel</button>
+          <button type="button" role="tab" id="ba-tab-exterior" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="exterior" data-alt-before="Tired 1950s ranch house with peeling yellow stucco and a dead lawn" data-alt-after="The same house with new siding, black windows, a new roof, and drought-tolerant landscaping" data-cap="A tired 1950s ranch with new siding, windows, roof, and a drought-tolerant&nbsp;yard.">Exterior Refresh</button>
+          <button type="button" role="tab" id="ba-tab-bath" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="bath" data-alt-before="Dated bathroom with a tub and sliding glass door, pink tile, and an oak vanity" data-alt-after="The same bathroom remodeled with a walk-in shower and a floating wood vanity" data-cap="A dated tub and vanity replaced with a walk-in shower and a floating&nbsp;vanity.">Bathroom Remodel</button>
+        </div>
+        <div class="ba-view" id="ba-panel" role="tabpanel" aria-labelledby="ba-tab-garage" style="--pos: 50%">
+          <img class="ba-after" src="img/ba/garage-after.jpg" srcset="img/ba/garage-after-sm.jpg 800w, img/ba/garage-after.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="The same garage converted into a studio ADU with a glass entry door and windows" loading="lazy" decoding="async">
+          <img class="ba-before" src="img/ba/garage-before.jpg" srcset="img/ba/garage-before-sm.jpg 800w, img/ba/garage-before.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="Old detached garage with a worn roll-up door and cracked driveway" loading="lazy" decoding="async">
+          <span class="ba-tag ba-tag-before" aria-hidden="true">Before</span>
+          <span class="ba-tag ba-tag-after" aria-hidden="true">After</span>
+          <span class="ba-handle" aria-hidden="true"></span>
+          <input class="ba-range" type="range" min="0" max="100" value="50" aria-label="Before and after slider. Move left to see more of the after photo, right to see more of the before photo.">
+        </div>
+        <p class="ba-cap" id="ba-cap" aria-live="polite">An unused garage turned into a rentable studio with its own&nbsp;entry.</p>
+      </div>
+      <p class="note">AI-generated illustrations of typical projects, not photos of actual MARS&nbsp;work.</p>
+    </div>
+  </section>
+
   <!-- How it works -->
   <section class="band steps-band" id="process" aria-labelledby="steps-title">
     <div class="wrap">
@@ -601,6 +661,49 @@
       new IntersectionObserver(function (entries) {
         bar.classList.toggle("is-hidden", entries[0].isIntersecting);
       }, { threshold: 0.15 }).observe(card);
+    }
+
+    // Before & after slider: the range input sets --pos; tabs swap which project pair is shown
+    var ba = document.getElementById("ba");
+    if (ba) {
+      var view = ba.querySelector(".ba-view");
+      var range = ba.querySelector(".ba-range");
+      var beforeImg = ba.querySelector(".ba-before");
+      var afterImg = ba.querySelector(".ba-after");
+      var cap = document.getElementById("ba-cap");
+      var tabs = Array.prototype.slice.call(ba.querySelectorAll('[role="tab"]'));
+      function setPos(v) { view.style.setProperty("--pos", v + "%"); }
+      range.addEventListener("input", function () { setPos(range.value); });
+      function setImg(img, name) {
+        img.src = "img/ba/" + name + ".jpg";
+        img.srcset = "img/ba/" + name + "-sm.jpg 800w, img/ba/" + name + ".jpg 1400w";
+      }
+      function selectTab(tab, focus) {
+        tabs.forEach(function (t) {
+          var on = t === tab;
+          t.setAttribute("aria-selected", on ? "true" : "false");
+          t.tabIndex = on ? 0 : -1;
+        });
+        var key = tab.getAttribute("data-img");
+        setImg(beforeImg, key + "-before");
+        setImg(afterImg, key + "-after");
+        beforeImg.alt = tab.getAttribute("data-alt-before");
+        afterImg.alt = tab.getAttribute("data-alt-after");
+        cap.innerHTML = tab.getAttribute("data-cap");
+        view.setAttribute("aria-labelledby", tab.id);
+        range.value = 50; setPos(50);
+        if (focus) tab.focus();
+        tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+      tabs.forEach(function (tab, i) {
+        tab.addEventListener("click", function () { selectTab(tab, false); });
+        tab.addEventListener("keydown", function (e) {
+          var next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+          if (next === null) return;
+          e.preventDefault();
+          selectTab(tabs[(next + tabs.length) % tabs.length], true);
+        });
+      });
     }
 
     // Estimate form

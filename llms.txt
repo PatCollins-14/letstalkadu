@@ -16,6 +16,7 @@
 ## Pages
 - [Home](https://letstalkadu.com/): what we build with typical prices, how it works, financing, FAQ, free estimate form
 - [ADU types](https://letstalkadu.com/#adu-types): detached, attached, garage conversion, junior ADU, plus second-story ADUs and remodels
+- [Before and after](https://letstalkadu.com/#before-after): AI-generated illustrations of a garage conversion, backyard ADU, kitchen, exterior, and bathroom remodel (not actual project photos)
 - [How it works](https://letstalkadu.com/#process): four steps from free consultation to move-in, and financing
 - [FAQ](https://letstalkadu.com/#faq): cost, financing, timeline, permits, size limits, builder and service area
 
