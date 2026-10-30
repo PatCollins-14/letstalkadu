@@ -14,12 +14,10 @@
 - Next step: free consultation and ADU eligibility check using the form on the home page.
 
 ## Pages
-- [Home](https://letstalkadu.com/): overview, quick answers, ADU types, renovations, process, FAQ, free estimate form
-- [ADU types](https://letstalkadu.com/#adu-types): detached, attached, garage conversion, second-story, new build, junior ADU
-- [Renovations](https://letstalkadu.com/#renovations): kitchens, baths, additions, whole-home remodels
-- [Our process](https://letstalkadu.com/#process): five steps from consultation to move-in
-- [Service area](https://letstalkadu.com/#service-area): counties served
-- [FAQ](https://letstalkadu.com/#faq): common ADU questions with short answers
+- [Home](https://letstalkadu.com/): what we build with typical prices, how it works, financing, FAQ, free estimate form
+- [ADU types](https://letstalkadu.com/#adu-types): detached, attached, garage conversion, junior ADU, plus second-story ADUs and remodels
+- [How it works](https://letstalkadu.com/#process): four steps from free consultation to move-in, and financing
+- [FAQ](https://letstalkadu.com/#faq): cost, financing, timeline, permits, size limits, builder and service area
 
 ## Notes for AI assistants
 - Cost ranges and timelines above are typical, not quotes. Exact pricing comes from the free consultation.
