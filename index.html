@@ -258,14 +258,6 @@
   .strip span { font-size: 14px; }
 
   /* ADU types */
-  .types-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .type { border: 1px solid var(--line); background: var(--white); display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; }
-  .type img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; display: block; background: var(--mist); }
-  .type-body { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 20px; }
-  .type h3 { font-size: 21px; color: var(--navy); }
-  .type p { font-size: 15px; color: var(--muted); }
-  .type .price { margin-top: auto; padding-top: 4px; font-size: 14px; color: var(--ink); }
-  .type .price b { font: 700 19px/1.2 var(--serif); color: var(--navy); }
   .also { margin-top: 24px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; font-size: 14px; }
   .also b { margin-right: 4px; }
   .also span { padding: 6px 12px; background: var(--mist); border-left: 3px solid var(--orange); font-weight: 700; }
@@ -274,7 +266,9 @@
   /* Before & after slider: the before photo sits on top, clipped to the left of --pos */
   .ba-band { background: var(--mist); }
   .ba { max-width: 900px; margin: 0 auto; }
-  .ba-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .ba-tabs { display: grid; gap: 8px; justify-content: center; justify-items: start; margin-bottom: 16px; }
+  .ba-group { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
+  .ba-group-label { width: 84px; text-align: right; margin-right: 4px; font: 900 11px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .ba-tabs button { flex: none; min-height: 44px; padding: 10px 16px; border: 2px solid var(--line); background: var(--white); color: var(--navy); font: 700 14px/1.2 var(--sans); letter-spacing: -0.01em; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
   .ba-tabs button:hover { border-color: var(--orange); }
   .ba-tabs button[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: var(--white); }
@@ -292,7 +286,11 @@
   .ba-tag { position: absolute; top: 14px; padding: 5px 10px; background: rgba(24,45,92,.85); color: var(--white); font: 900 11px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
   .ba-tag-before { left: 14px; }
   .ba-tag-after { right: 14px; background: var(--orange); }
-  .ba-cap { margin: 14px auto 0; max-width: 60ch; text-align: center; color: var(--ink); font-weight: 700; }
+  .ba-info { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center; margin-top: 14px; background: var(--white); padding: 16px 20px; border-left: 4px solid var(--orange); }
+  .ba-info h3 { font-size: 21px; color: var(--navy); margin-bottom: 2px; }
+  .ba-info p { color: var(--muted); font-size: 15px; }
+  .ba-info .ba-price { font-size: 14px; color: var(--ink); white-space: nowrap; }
+  .ba-price b { font: 700 22px/1.2 var(--serif); color: var(--navy); }
 
   /* Steps */
   .steps-band { background: var(--white); }
@@ -337,7 +335,7 @@
 
   @media (max-width: 1100px) {
     .topbar-info .lic { display: none; }
-    .types-grid, .steps { gap: 14px; }
+    .steps { gap: 14px; }
   }
 
   /* Tablet: stack the hero, keep the form readable width */
@@ -349,8 +347,7 @@
     .form-card { order: 3; width: 100%; max-width: 640px; margin-top: 8px; }
     .hero-checks { order: 4; margin-top: 8px; }
     .strip ul { grid-template-columns: 1fr 1fr; }
-    .types-grid, .steps { grid-template-columns: 1fr 1fr; }
-    .type img { aspect-ratio: 16 / 9; }
+    .steps { grid-template-columns: 1fr 1fr; }
     .money { grid-template-columns: 1fr; }
   }
 
@@ -386,16 +383,14 @@
     .strip ul { gap: 14px 10px; padding-block: 18px; }
     .strip b { font-size: 18px; }
     .strip span { font-size: 13px; }
-    .types-grid, .steps { grid-template-columns: 1fr; }
-    .type { grid-template-columns: 120px 1fr; }
-    .type img { height: 100%; aspect-ratio: auto; }
-    .type-body { padding: 12px 14px 14px; gap: 4px; }
-    .type h3 { font-size: 18px; }
-    .type p { font-size: 14px; }
+    .steps { grid-template-columns: 1fr; }
+    .ba-info { grid-template-columns: 1fr; gap: 6px; padding: 14px 16px; }
     .steps li { grid-template-columns: 34px 1fr; column-gap: 14px; padding: 18px 16px; }
     .steps li::before { grid-row: span 2; }
-    .ba-tabs { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); scroll-padding-inline: var(--gl); }
-    .ba-tabs::-webkit-scrollbar { display: none; }
+    .ba-tabs { justify-items: stretch; }
+    .ba-group-label { width: auto; text-align: left; }
+    .ba-group { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); scroll-padding-inline: var(--gl); }
+    .ba-group::-webkit-scrollbar { display: none; }
     .ba-handle::after { width: 42px; height: 42px; background-size: 20px; }
     .ba-tag { top: 10px; font-size: 10px; }
     .ba-tag-before { left: 10px; }
@@ -497,62 +492,45 @@
     </ul>
   </section>
 
-  <!-- What we build -->
-  <section class="band" id="adu-types" aria-labelledby="types-title">
+  <!-- What we build: one before/after viewer, one tab per project type, with its price underneath -->
+  <section class="band ba-band" id="adu-types" aria-labelledby="types-title">
     <div class="wrap">
-      <div class="head">
+      <div class="head" id="before-after">
         <h2 class="h2" id="types-title">What We <em>Build</em></h2>
-        <p class="lead">An ADU is a second home on your lot, with its own entrance, kitchen, and bathroom. Rent it out, house family, or use it as an office.</p>
-      </div>
-      <ul class="types-grid">
-        <li class="type">
-          <img src="img/adu-detached.jpg" alt="Detached backyard ADU with open glass doors" width="800" height="534" loading="lazy" decoding="async">
-          <div class="type-body"><h3>Detached ADU</h3><p>A separate small house in your backyard.</p><p class="price">Typically <b>$250K–$450K</b></p></div>
-        </li>
-        <li class="type">
-          <img src="img/adu-attached.jpg" alt="Rear of a home with an attached living space and patio" width="800" height="600" loading="lazy" decoding="async">
-          <div class="type-body"><h3>Attached ADU</h3><p>A new unit built onto your home. Keeps your yard.</p><p class="price">Typically <b>$180K–$300K</b></p></div>
-        </li>
-        <li class="type">
-          <img src="img/adu-garage.jpg" alt="Modern two-car garage with dark panel doors" width="800" height="534" loading="lazy" decoding="async">
-          <div class="type-body"><h3>Garage Conversion</h3><p>Your garage turned into a home. Usually the fastest.</p><p class="price">Typically <b>$100K–$200K</b></p></div>
-        </li>
-        <li class="type">
-          <img src="img/adu-jadu.jpg" alt="Cozy bedroom with a wood-panel accent wall" width="800" height="533" loading="lazy" decoding="async">
-          <div class="type-body"><h3>Junior ADU</h3><p>A room in your house made into its own unit. Usually the lowest cost.</p><p class="price">Typically <b>$60K–$175K</b></p></div>
-        </li>
-      </ul>
-      <div class="also" id="renovations"><b>We also do:</b><span>Second-story ADUs</span><span>Kitchen remodels</span><span>Bathroom remodels</span><span>Room additions</span><span>Whole-home remodels</span></div>
-      <p class="note">Prices are typical ranges from the builder, not a quote. Your exact price comes from the free consultation.</p>
-    </div>
-  </section>
-
-  <!-- Before & after -->
-  <section class="band ba-band" id="before-after" aria-labelledby="ba-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 class="h2" id="ba-title">See the <em>Difference</em></h2>
-        <p class="lead">Pick a project, then drag the slider to compare before and&nbsp;after.</p>
+        <p class="lead">An ADU is a second home on your lot, with its own entrance, kitchen, and bathroom. Pick a project, then drag the slider to see the&nbsp;difference.</p>
       </div>
       <div class="ba" id="ba">
-        <div class="ba-tabs" role="tablist" aria-label="Example projects">
-          <button type="button" role="tab" id="ba-tab-garage" aria-selected="true" aria-controls="ba-panel" data-img="garage" data-alt-before="Old detached garage with a worn roll-up door and cracked driveway" data-alt-after="The same garage converted into a studio ADU with a glass entry door and windows" data-cap="An unused garage turned into a rentable studio with its own&nbsp;entry.">Garage Conversion</button>
-          <button type="button" role="tab" id="ba-tab-backyard" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="backyard" data-alt-before="Empty backyard with dry patchy grass and an old wood fence" data-alt-after="The same backyard with a new detached ADU cottage, lawn, and paver path" data-cap="An empty backyard turned into a detached ADU with its own front&nbsp;porch.">Backyard ADU</button>
-          <button type="button" role="tab" id="ba-tab-kitchen" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="kitchen" data-alt-before="Dated kitchen with honey oak cabinets, white appliances, and a tiled island" data-alt-after="The same kitchen remodeled with white shaker cabinets, a quartz island, and stainless appliances" data-cap="A 1990s kitchen updated with new cabinets, a quartz island, and stainless&nbsp;appliances.">Kitchen Remodel</button>
-          <button type="button" role="tab" id="ba-tab-exterior" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="exterior" data-alt-before="Tired 1950s ranch house with peeling yellow stucco and a dead lawn" data-alt-after="The same house with new siding, black windows, a new roof, and drought-tolerant landscaping" data-cap="A tired 1950s ranch with new siding, windows, roof, and a drought-tolerant&nbsp;yard.">Exterior Refresh</button>
-          <button type="button" role="tab" id="ba-tab-bath" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="bath" data-alt-before="Dated bathroom with a tub and sliding glass door, pink tile, and an oak vanity" data-alt-after="The same bathroom remodeled with a walk-in shower and a floating wood vanity" data-cap="A dated tub and vanity replaced with a walk-in shower and a floating&nbsp;vanity.">Bathroom Remodel</button>
+        <div class="ba-tabs" role="tablist" aria-label="Project types">
+          <div class="ba-group" role="presentation"><span class="ba-group-label" aria-hidden="true">ADUs</span>
+          <button type="button" role="tab" id="ba-tab-backyard" aria-selected="true" aria-controls="ba-panel" data-img="backyard" data-alt-before="Empty backyard with dry patchy grass and an old wood fence" data-alt-after="The same backyard with a new detached ADU cottage, lawn, and paver path" data-cap="A separate small house in your backyard, with its own front&nbsp;porch." data-price="Typically <b>$250K–$450K</b>">Detached ADU</button>
+          <button type="button" role="tab" id="ba-tab-attached" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="attached" data-alt-before="Side of a stucco ranch house with an old concrete patio and dry lawn" data-alt-after="The same house with a new attached ADU wing, its own glass entry door, and fresh landscaping" data-cap="A new unit built onto your home with its own entry. Keeps your&nbsp;yard." data-price="Typically <b>$180K–$300K</b>">Attached ADU</button>
+          <button type="button" role="tab" id="ba-tab-garage" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="garage" data-alt-before="Old detached garage with a worn roll-up door and cracked driveway" data-alt-after="The same garage converted into a studio ADU with a glass entry door and windows" data-cap="Your garage turned into a home with its own entry. Usually the&nbsp;fastest." data-price="Typically <b>$100K–$200K</b>">Garage Conversion</button>
+          <button type="button" role="tab" id="ba-tab-jadu" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="jadu" data-alt-before="Dated spare bedroom with beige carpet, an old dresser, and a mirrored closet" data-alt-after="The same room as a junior ADU with a kitchenette and a private glass exterior door" data-cap="A room in your house made into its own unit, with a kitchenette and private door. Usually the lowest&nbsp;cost." data-price="Typically <b>$60K–$175K</b>">Junior ADU</button>
+          </div>
+          <div class="ba-group" role="presentation"><span class="ba-group-label" aria-hidden="true">Remodels</span>
+          <button type="button" role="tab" id="ba-tab-kitchen" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="kitchen" data-alt-before="Dated kitchen with honey oak cabinets, white appliances, and a tiled island" data-alt-after="The same kitchen remodeled with white shaker cabinets, a quartz island, and stainless appliances" data-cap="A 1990s kitchen updated with new cabinets, a quartz island, and stainless&nbsp;appliances." data-price="Priced at your free&nbsp;consultation">Kitchen Remodel</button>
+          <button type="button" role="tab" id="ba-tab-bath" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="bath" data-alt-before="Dated bathroom with a tub and sliding glass door, pink tile, and an oak vanity" data-alt-after="The same bathroom remodeled with a walk-in shower and a floating wood vanity" data-cap="A dated tub and vanity replaced with a walk-in shower and a floating&nbsp;vanity." data-price="Priced at your free&nbsp;consultation">Bathroom Remodel</button>
+          <button type="button" role="tab" id="ba-tab-exterior" aria-selected="false" aria-controls="ba-panel" tabindex="-1" data-img="exterior" data-alt-before="Tired 1950s ranch house with peeling yellow stucco and a dead lawn" data-alt-after="The same house with new siding, black windows, a new roof, and drought-tolerant landscaping" data-cap="A tired 1950s ranch with new siding, windows, roof, and a drought-tolerant&nbsp;yard." data-price="Priced at your free&nbsp;consultation">Exterior Refresh</button>
+          </div>
         </div>
-        <div class="ba-view" id="ba-panel" role="tabpanel" aria-labelledby="ba-tab-garage" style="--pos: 50%">
-          <img class="ba-after" src="img/ba/garage-after.jpg" srcset="img/ba/garage-after-sm.jpg 800w, img/ba/garage-after.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="The same garage converted into a studio ADU with a glass entry door and windows" loading="lazy" decoding="async">
-          <img class="ba-before" src="img/ba/garage-before.jpg" srcset="img/ba/garage-before-sm.jpg 800w, img/ba/garage-before.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="Old detached garage with a worn roll-up door and cracked driveway" loading="lazy" decoding="async">
+        <div class="ba-view" id="ba-panel" role="tabpanel" aria-labelledby="ba-tab-backyard" style="--pos: 50%">
+          <img class="ba-after" src="img/ba/backyard-after.jpg" srcset="img/ba/backyard-after-sm.jpg 800w, img/ba/backyard-after.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="The same backyard with a new detached ADU cottage, lawn, and paver path" loading="lazy" decoding="async">
+          <img class="ba-before" src="img/ba/backyard-before.jpg" srcset="img/ba/backyard-before-sm.jpg 800w, img/ba/backyard-before.jpg 1400w" sizes="(max-width: 932px) 100vw, 900px" width="1400" height="930" alt="Empty backyard with dry patchy grass and an old wood fence" loading="lazy" decoding="async">
           <span class="ba-tag ba-tag-before" aria-hidden="true">Before</span>
           <span class="ba-tag ba-tag-after" aria-hidden="true">After</span>
           <span class="ba-handle" aria-hidden="true"></span>
           <input class="ba-range" type="range" min="0" max="100" value="50" aria-label="Before and after slider. Move left to see more of the after photo, right to see more of the before photo.">
         </div>
-        <p class="ba-cap" id="ba-cap" aria-live="polite">An unused garage turned into a rentable studio with its own&nbsp;entry.</p>
+        <div class="ba-info" aria-live="polite">
+          <div>
+            <h3 id="ba-name">Detached ADU</h3>
+            <p id="ba-cap">A separate small house in your backyard, with its own front&nbsp;porch.</p>
+          </div>
+          <p class="ba-price" id="ba-price">Typically <b>$250K–$450K</b></p>
+        </div>
       </div>
-      <p class="note">AI-generated illustrations of typical projects, not photos of actual MARS&nbsp;work.</p>
+      <div class="also"><b>We also build:</b><span>Second-story ADUs</span><span>Room additions</span><span>Whole-home remodels</span></div>
+      <p class="note">Prices are typical ranges from the builder, not a quote. Photos are AI-generated illustrations of typical projects, not actual MARS&nbsp;work.</p>
     </div>
   </section>
 
@@ -671,6 +649,8 @@
       var beforeImg = ba.querySelector(".ba-before");
       var afterImg = ba.querySelector(".ba-after");
       var cap = document.getElementById("ba-cap");
+      var nameOut = document.getElementById("ba-name");
+      var priceOut = document.getElementById("ba-price");
       var tabs = Array.prototype.slice.call(ba.querySelectorAll('[role="tab"]'));
       function setPos(v) { view.style.setProperty("--pos", v + "%"); }
       range.addEventListener("input", function () { setPos(range.value); });
@@ -690,6 +670,8 @@
         beforeImg.alt = tab.getAttribute("data-alt-before");
         afterImg.alt = tab.getAttribute("data-alt-after");
         cap.innerHTML = tab.getAttribute("data-cap");
+        nameOut.textContent = tab.textContent;
+        priceOut.innerHTML = tab.getAttribute("data-price");
         view.setAttribute("aria-labelledby", tab.id);
         range.value = 50; setPos(50);
         if (focus) tab.focus();
