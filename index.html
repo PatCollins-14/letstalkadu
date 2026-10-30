@@ -302,6 +302,24 @@
   .money h3 { font-size: 22px; color: var(--white); margin-bottom: 4px; }
   .money p { color: rgba(255,255,255,.88); font-size: 15px; }
 
+  /* Inspiration gallery */
+  .gallery-band { background: var(--mist); }
+  .gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .g-item { position: relative; display: block; width: 100%; padding: 0; border: 0; background: #dfe5ea; cursor: zoom-in; overflow: hidden; aspect-ratio: 4 / 3; }
+  .g-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+  .g-item:hover img, .g-item:focus-visible img { transform: scale(1.05); }
+  .g-item span { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 12px 10px; background: linear-gradient(transparent, rgba(24,45,92,.85)); color: var(--white); font: 700 14px/1.2 var(--sans); text-align: left; }
+  .lightbox { padding: 0; border: 0; background: transparent; max-width: min(1100px, 94vw); width: 100%; overflow: visible; }
+  .lightbox::backdrop { background: rgba(12, 24, 52, .88); }
+  .lightbox img { display: block; width: 100%; height: auto; max-height: 82vh; object-fit: contain; background: #0c1834; }
+  .lb-cap { margin-top: 10px; text-align: center; color: var(--white); font: 700 16px/1.3 var(--sans); }
+  .lb-btn { position: absolute; width: 48px; height: 48px; border: 0; border-radius: 50%; background: rgba(255,255,255,.92); color: var(--navy); font: 400 30px/1 var(--sans); cursor: pointer; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  .lb-btn:hover { background: var(--white); }
+  .lb-close { top: -16px; right: -16px; }
+  .lb-prev, .lb-next { top: calc(50% - 40px); }
+  .lb-prev { left: -24px; }
+  .lb-next { right: -24px; }
+
   /* FAQ */
   .faq-list { max-width: 820px; margin: 0 auto; display: grid; gap: 8px; }
   .faq-item { border: 1px solid var(--line); background: var(--white); }
@@ -347,6 +365,10 @@
     .hero-checks { order: 4; margin-top: 8px; }
     .strip ul { grid-template-columns: 1fr 1fr; }
     .steps { grid-template-columns: 1fr 1fr; }
+    .gallery { grid-template-columns: 1fr 1fr; }
+    .lb-close { top: -56px; right: 0; }
+    .lb-prev { left: 8px; }
+    .lb-next { right: 8px; }
     .money { grid-template-columns: 1fr; }
   }
 
@@ -555,6 +577,34 @@
     </div>
   </section>
 
+  <!-- Inspiration gallery: thumbnails open a full-size view in a dialog -->
+  <section class="band gallery-band" id="gallery" aria-labelledby="gallery-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 class="h2" id="gallery-title">ADU <em>Inspiration</em></h2>
+        <p class="lead">Styles and ideas for what your ADU could look like. Tap a photo to see it&nbsp;larger.</p>
+      </div>
+      <ul class="gallery">
+        <li><button type="button" class="g-item" data-full="img/gallery/modern.jpg"><img src="img/gallery/modern-sm.jpg" alt="Modern detached ADU with a flat roof, cedar accents, and glass sliding doors" width="640" height="478" loading="lazy" decoding="async"><span>Modern Detached</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/spanish.jpg"><img src="img/gallery/spanish-sm.jpg" alt="Spanish-style casita with white stucco, a clay tile roof, and an arched wood door" width="640" height="478" loading="lazy" decoding="async"><span>Spanish Casita</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/farmhouse.jpg"><img src="img/gallery/farmhouse-sm.jpg" alt="Charcoal farmhouse cottage with a cedar front porch at dusk" width="640" height="478" loading="lazy" decoding="async"><span>Farmhouse Cottage</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/carriage.jpg"><img src="img/gallery/carriage-sm.jpg" alt="Two-story carriage house ADU above a two-car garage with an outdoor staircase" width="640" height="478" loading="lazy" decoding="async"><span>Above the Garage</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/garage-studio.jpg"><img src="img/gallery/garage-studio-sm.jpg" alt="Bright studio ADU inside a converted garage with a white kitchen and living area" width="640" height="478" loading="lazy" decoding="async"><span>Garage Studio</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/interior.jpg"><img src="img/gallery/interior-sm.jpg" alt="One-bedroom ADU interior with sage green kitchen cabinets and a vaulted ceiling" width="640" height="478" loading="lazy" decoding="async"><span>One-Bedroom Interior</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/office.jpg"><img src="img/gallery/office-sm.jpg" alt="Backyard studio ADU used as a home office with a glass door and desk" width="640" height="478" loading="lazy" decoding="async"><span>Home Office Studio</span></button></li>
+        <li><button type="button" class="g-item" data-full="img/gallery/pool-house.jpg"><img src="img/gallery/pool-house-sm.jpg" alt="Modern pool house ADU with glass doors facing a swimming pool" width="640" height="478" loading="lazy" decoding="async"><span>Pool House</span></button></li>
+      </ul>
+      <p class="note">AI-generated inspiration images, not photos of actual MARS&nbsp;work.</p>
+    </div>
+    <dialog class="lightbox" id="lightbox" aria-label="ADU inspiration photo">
+      <img id="lb-img" alt="" width="1600" height="1195">
+      <p class="lb-cap" id="lb-cap"></p>
+      <button type="button" class="lb-btn lb-close" id="lb-close" aria-label="Close">×</button>
+      <button type="button" class="lb-btn lb-prev" id="lb-prev" aria-label="Previous photo">‹</button>
+      <button type="button" class="lb-btn lb-next" id="lb-next" aria-label="Next photo">›</button>
+    </dialog>
+  </section>
+
   <!-- FAQ -->
   <section class="band" id="faq" aria-labelledby="faq-title">
     <div class="wrap">
@@ -672,6 +722,39 @@
           e.preventDefault();
           selectTab(tabs[(next + tabs.length) % tabs.length], true);
         });
+      });
+    }
+
+    // Inspiration gallery: open the full-size photo in a dialog, with previous/next and arrow keys
+    var lb = document.getElementById("lightbox");
+    if (lb && lb.showModal) {
+      var items = Array.prototype.slice.call(document.querySelectorAll(".g-item"));
+      var lbImg = document.getElementById("lb-img");
+      var lbCap = document.getElementById("lb-cap");
+      var current = 0, opener = null;
+      function show(i) {
+        current = (i + items.length) % items.length;
+        var it = items[current], thumb = it.querySelector("img");
+        lbImg.src = it.getAttribute("data-full");
+        lbImg.alt = thumb.alt;
+        lbCap.textContent = it.querySelector("span").textContent;
+      }
+      items.forEach(function (it, i) {
+        it.addEventListener("click", function () { opener = it; show(i); lb.showModal(); });
+      });
+      document.getElementById("lb-close").addEventListener("click", function () { lb.close(); });
+      document.getElementById("lb-prev").addEventListener("click", function () { show(current - 1); });
+      document.getElementById("lb-next").addEventListener("click", function () { show(current + 1); });
+      lb.addEventListener("click", function (e) { if (e.target === lb) lb.close(); }); // backdrop
+      lb.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft") { e.preventDefault(); show(current - 1); }
+        if (e.key === "ArrowRight") { e.preventDefault(); show(current + 1); }
+      });
+      lb.addEventListener("close", function () { if (opener) opener.focus(); });
+    } else if (lb) {
+      // very old browsers without <dialog>: open the photo directly
+      Array.prototype.forEach.call(document.querySelectorAll(".g-item"), function (it) {
+        it.addEventListener("click", function () { location.href = it.getAttribute("data-full"); });
       });
     }
 
