@@ -304,7 +304,24 @@
 
   /* Inspiration gallery */
   .gallery-band { background: var(--mist); }
-  .gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .size-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 18px; }
+  .size-tabs button { min-height: 44px; padding: 10px 20px; border: 2px solid var(--line); background: var(--white); color: var(--navy); font: 700 15px/1.2 var(--sans); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .size-tabs button:hover { border-color: var(--orange); }
+  .size-tabs button[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .size-sum { text-align: center; color: var(--muted); max-width: 64ch; margin: 0 auto 16px; }
+  .size-sum b { color: var(--navy); }
+  .gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .plans-title { margin: 26px 0 12px; font-size: 20px; color: var(--navy); }
+  .plans { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .plans-4 { grid-template-columns: repeat(4, 1fr); }
+  .plan { background: var(--white); border-top: 3px solid var(--orange); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .plan-city { font: 900 11px/1.3 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .plan h4 { margin: 0; font: 600 17px/1.25 var(--serif); letter-spacing: -0.015em; color: var(--navy); text-wrap: balance; }
+  .plan-spec { font-size: 14px; color: var(--ink); }
+  .plan a { margin-top: auto; padding-top: 6px; color: var(--navy); font-weight: 700; font-size: 14px; text-decoration: none; }
+  .plan a:hover { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
+  .plans-cta { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 24px; text-align: center; }
+  .plans-cta p { color: var(--ink); }
   .g-item { position: relative; display: block; width: 100%; padding: 0; border: 0; background: #dfe5ea; cursor: zoom-in; overflow: hidden; aspect-ratio: 4 / 3; }
   .g-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
   .g-item:hover img, .g-item:focus-visible img { transform: scale(1.05); }
@@ -365,7 +382,7 @@
     .hero-checks { order: 4; margin-top: 8px; }
     .strip ul { grid-template-columns: 1fr 1fr; }
     .steps { grid-template-columns: 1fr 1fr; }
-    .gallery { grid-template-columns: 1fr 1fr; }
+    .plans-4 { grid-template-columns: 1fr 1fr; }
     .lb-close { top: -56px; right: 0; }
     .lb-prev { left: 8px; }
     .lb-next { right: 8px; }
@@ -414,6 +431,13 @@
     .ba-group::-webkit-scrollbar { display: none; }
     .ba-handle::after { width: 42px; height: 42px; background-size: 20px; }
     .ba-tag { top: 10px; font-size: 10px; }
+    .size-tabs { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); }
+    .size-tabs::-webkit-scrollbar { display: none; }
+    .size-tabs button { flex: none; padding: 10px 16px; }
+    .gallery { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 78%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); scroll-padding-inline: var(--gl); }
+    .gallery::-webkit-scrollbar { display: none; }
+    .gallery li { scroll-snap-align: start; }
+    .plans { grid-template-columns: 1fr; }
     .ba-tag-before { left: 10px; }
     .ba-tag-after { right: 10px; }
     .faq-item summary { font-size: 16px; padding: 14px 46px 14px 16px; }
@@ -577,24 +601,90 @@
     </div>
   </section>
 
-  <!-- Inspiration gallery: thumbnails open a full-size view in a dialog -->
+  <!-- Ideas & plans by size: tabs for studio to 3 bedrooms, each with inspiration photos (open full size in a dialog) and real pre-approved city plans -->
   <section class="band gallery-band" id="gallery" aria-labelledby="gallery-title">
     <div class="wrap">
       <div class="head">
-        <h2 class="h2" id="gallery-title">ADU <em>Inspiration</em></h2>
-        <p class="lead">Styles and ideas for what your ADU could look like. Tap a photo to see it&nbsp;larger.</p>
+        <h2 class="h2" id="gallery-title">Ideas &amp; Plans <em>by Size</em></h2>
+        <p class="lead">Pick a size to see ideas and pre-approved city plans you can start&nbsp;from.</p>
       </div>
-      <ul class="gallery">
-        <li><button type="button" class="g-item" data-full="img/gallery/modern.jpg"><img src="img/gallery/modern-sm.jpg" alt="Modern detached ADU with a flat roof, cedar accents, and glass sliding doors" width="640" height="478" loading="lazy" decoding="async"><span>Modern Detached</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/spanish.jpg"><img src="img/gallery/spanish-sm.jpg" alt="Spanish-style casita with white stucco, a clay tile roof, and an arched wood door" width="640" height="478" loading="lazy" decoding="async"><span>Spanish Casita</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/farmhouse.jpg"><img src="img/gallery/farmhouse-sm.jpg" alt="Charcoal farmhouse cottage with a cedar front porch at dusk" width="640" height="478" loading="lazy" decoding="async"><span>Farmhouse Cottage</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/carriage.jpg"><img src="img/gallery/carriage-sm.jpg" alt="Two-story carriage house ADU above a two-car garage with an outdoor staircase" width="640" height="478" loading="lazy" decoding="async"><span>Above the Garage</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/garage-studio.jpg"><img src="img/gallery/garage-studio-sm.jpg" alt="Bright studio ADU inside a converted garage with a white kitchen and living area" width="640" height="478" loading="lazy" decoding="async"><span>Garage Studio</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/interior.jpg"><img src="img/gallery/interior-sm.jpg" alt="One-bedroom ADU interior with sage green kitchen cabinets and a vaulted ceiling" width="640" height="478" loading="lazy" decoding="async"><span>One-Bedroom Interior</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/office.jpg"><img src="img/gallery/office-sm.jpg" alt="Backyard studio ADU used as a home office with a glass door and desk" width="640" height="478" loading="lazy" decoding="async"><span>Home Office Studio</span></button></li>
-        <li><button type="button" class="g-item" data-full="img/gallery/pool-house.jpg"><img src="img/gallery/pool-house-sm.jpg" alt="Modern pool house ADU with glass doors facing a swimming pool" width="640" height="478" loading="lazy" decoding="async"><span>Pool House</span></button></li>
-      </ul>
-      <p class="note">AI-generated inspiration images, not photos of actual MARS&nbsp;work.</p>
+      <div class="size-tabs" role="tablist" aria-label="ADU size">
+        <button type="button" role="tab" id="size-tab-studio" aria-selected="true" aria-controls="size-studio">Studio</button>
+        <button type="button" role="tab" id="size-tab-1bd" aria-selected="false" aria-controls="size-1bd" tabindex="-1">1 Bedroom</button>
+        <button type="button" role="tab" id="size-tab-2bd" aria-selected="false" aria-controls="size-2bd" tabindex="-1">2 Bedroom</button>
+        <button type="button" role="tab" id="size-tab-3bd" aria-selected="false" aria-controls="size-3bd" tabindex="-1">3 Bedroom</button>
+      </div>
+
+      <div class="size-panel" role="tabpanel" id="size-studio" aria-labelledby="size-tab-studio">
+        <p class="size-sum"><b>Studio</b> · about 220–430 sq ft. One open room with a kitchenette and bathroom, great for a rental, office, or guest&nbsp;suite.</p>
+        <ul class="gallery">
+          <li><button type="button" class="g-item" data-full="img/gallery/garage-studio.jpg"><img src="img/gallery/garage-studio-sm.jpg" alt="Bright studio ADU inside a converted garage with a white kitchen and living area" width="640" height="478" loading="lazy" decoding="async"><span>Garage Studio</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/office.jpg"><img src="img/gallery/office-sm.jpg" alt="Backyard studio ADU used as a home office with a glass door and desk" width="640" height="478" loading="lazy" decoding="async"><span>Home Office Studio</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/pool-house.jpg"><img src="img/gallery/pool-house-sm.jpg" alt="Modern pool house studio ADU with glass doors facing a swimming pool" width="640" height="478" loading="lazy" decoding="async"><span>Pool House Studio</span></button></li>
+        </ul>
+        <h3 class="plans-title">Pre-approved city plans</h3>
+        <ul class="plans plans-4">
+          <li class="plan"><p class="plan-city">Anaheim</p><h4>Plan 001 — Studio</h4><p class="plan-spec">Studio · 224 sq ft · Free plan</p><a href="https://anaheim.net/6349/ADU-Anaheim" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Anaheim, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Pasadena</p><h4>Prototype A — Studio</h4><p class="plan-spec">Studio · 1 BA · 374 sq ft · Free plan</p><a href="https://www.cityofpasadena.net/planning/planning-division/community-planning/accessory-dwelling-units/adu-standard-plans-program/" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Pasadena, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Santa Ana</p><h4>Studio — Ranch, Spanish, or Traditional</h4><p class="plan-spec">Studio · 399 sq ft · Free plans</p><a href="https://santa-ana.gov/pre-approved-adu-plan-submittal-process" target="_blank" rel="noopener">View official plans<span class="sr-only"> (Santa Ana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Burbank</p><h4>BPAP 24001 — Studio</h4><p class="plan-spec">Studio · 432 sq ft · Free plan</p><a href="https://www.burbankca.gov/web/community-development/pre-approved-adu" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Burbank, opens in a new tab)</span> →</a></li>
+        </ul>
+      </div>
+
+      <div class="size-panel" role="tabpanel" id="size-1bd" aria-labelledby="size-tab-1bd" hidden>
+        <p class="size-sum"><b>1 Bedroom</b> · about 450–750 sq ft. A separate bedroom, a full kitchen, and a living area for one or two&nbsp;people.</p>
+        <ul class="gallery">
+          <li><button type="button" class="g-item" data-full="img/gallery/interior.jpg"><img src="img/gallery/interior-sm.jpg" alt="One-bedroom ADU interior with sage green kitchen cabinets and a vaulted ceiling" width="640" height="478" loading="lazy" decoding="async"><span>One-Bedroom Interior</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/spanish.jpg"><img src="img/gallery/spanish-sm.jpg" alt="Spanish-style casita with white stucco, a clay tile roof, and an arched wood door" width="640" height="478" loading="lazy" decoding="async"><span>Spanish Casita</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/farmhouse.jpg"><img src="img/gallery/farmhouse-sm.jpg" alt="Charcoal farmhouse cottage with a cedar front porch at dusk" width="640" height="478" loading="lazy" decoding="async"><span>Farmhouse Cottage</span></button></li>
+        </ul>
+        <h3 class="plans-title">Pre-approved city plans</h3>
+        <ul class="plans plans-3">
+          <li class="plan"><p class="plan-city">Los Angeles</p><h4>YOU-ADU — 1 Bedroom</h4><p class="plan-spec">1 BD · 455 sq ft · Free plan</p><a href="https://dbs.lacity.gov/approved-standard-plans/you-adu" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Los Angeles, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Fontana</p><h4>Morning Glory — 1 Bedroom</h4><p class="plan-spec">1 BD · 1 BA · 462 sq ft · Free plan</p><a href="https://www.fontanaca.gov/3710/Standard-ADU-Plans" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Fontana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Huntington Beach</p><h4>California Ranch, Bungalow, or Spanish Colonial</h4><p class="plan-spec">1 BD · 1 BA · 490 sq ft · Free plans</p><a href="https://www.huntingtonbeachca.gov/departments/community_development/planning_zoning/accessory_dwelling_units_(adus).php" target="_blank" rel="noopener">View official plans<span class="sr-only"> (Huntington Beach, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Anaheim</p><h4>Plan 002 — 1 Bedroom</h4><p class="plan-spec">1 BD · 499 sq ft · Free plan</p><a href="https://anaheim.net/6349/ADU-Anaheim" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Anaheim, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Santa Ana</p><h4>Six styles, Ranch to Craftsman</h4><p class="plan-spec">1 BD · 499–677 sq ft · Free plans</p><a href="https://santa-ana.gov/pre-approved-adu-plan-submittal-process" target="_blank" rel="noopener">View official plans<span class="sr-only"> (Santa Ana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Riverside</p><h4>746 Sq Ft — 1 Bedroom</h4><p class="plan-spec">1 BD · 1 BA · 746 sq ft · Free plan</p><a href="https://riversideca.gov/cedd/building-safety/standard-plans-details" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Riverside, opens in a new tab)</span> →</a></li>
+        </ul>
+      </div>
+
+      <div class="size-panel" role="tabpanel" id="size-2bd" aria-labelledby="size-tab-2bd" hidden>
+        <p class="size-sum"><b>2 Bedroom</b> · about 740–1,020 sq ft. Room for a small family, roommates, or parents moving&nbsp;closer.</p>
+        <ul class="gallery">
+          <li><button type="button" class="g-item" data-full="img/gallery/2bd-interior.jpg"><img src="img/gallery/2bd-interior-sm.jpg" alt="Two-bedroom ADU with an open kitchen and living room and a hallway to two bedrooms" width="640" height="478" loading="lazy" decoding="async"><span>Two-Bedroom Interior</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/carriage.jpg"><img src="img/gallery/carriage-sm.jpg" alt="Two-story carriage house ADU above a two-car garage with an outdoor staircase" width="640" height="478" loading="lazy" decoding="async"><span>Above the Garage</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/modern.jpg"><img src="img/gallery/modern-sm.jpg" alt="Modern detached ADU with a flat roof, cedar accents, and glass sliding doors" width="640" height="478" loading="lazy" decoding="async"><span>Modern Detached</span></button></li>
+        </ul>
+        <h3 class="plans-title">Pre-approved city plans</h3>
+        <ul class="plans plans-4">
+          <li class="plan"><p class="plan-city">Fontana</p><h4>Carnation — 2 Bedroom</h4><p class="plan-spec">2 BD · 2 BA · 738 sq ft · Free plan</p><a href="https://www.fontanaca.gov/3710/Standard-ADU-Plans" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Fontana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Santa Ana</p><h4>2 Bedroom — Contemporary</h4><p class="plan-spec">2 BD · 749 sq ft · Free plan</p><a href="https://santa-ana.gov/pre-approved-adu-plan-submittal-process" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Santa Ana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Riverside</p><h4>Two 2-Bedroom Plans</h4><p class="plan-spec">2 BD · 2 BA · 800 or 1,020 sq ft · Free&nbsp;plans</p><a href="https://riversideca.gov/cedd/building-safety/standard-plans-details" target="_blank" rel="noopener">View official plans<span class="sr-only"> (Riverside, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Anaheim</p><h4>Plan 003 — 2 Bedroom</h4><p class="plan-spec">2 BD · 990 sq ft · Free plan</p><a href="https://anaheim.net/6349/ADU-Anaheim" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Anaheim, opens in a new tab)</span> →</a></li>
+        </ul>
+      </div>
+
+      <div class="size-panel" role="tabpanel" id="size-3bd" aria-labelledby="size-tab-3bd" hidden>
+        <p class="size-sum"><b>3 Bedroom</b> · about 1,140–1,200 sq ft. A full-size home in your backyard, up to California’s 1,200 sq ft&nbsp;limit.</p>
+        <ul class="gallery">
+          <li><button type="button" class="g-item" data-full="img/gallery/3bd-exterior.jpg"><img src="img/gallery/3bd-exterior-sm.jpg" alt="Three-bedroom L-shaped detached ADU with a covered patio and metal roof" width="640" height="478" loading="lazy" decoding="async"><span>Three-Bedroom Home</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/3bd-living.jpg"><img src="img/gallery/3bd-living-sm.jpg" alt="Three-bedroom ADU family room with a sectional, dining table, and navy kitchen island" width="640" height="478" loading="lazy" decoding="async"><span>Family Living Room</span></button></li>
+          <li><button type="button" class="g-item" data-full="img/gallery/3bd-bedroom.jpg"><img src="img/gallery/3bd-bedroom-sm.jpg" alt="Primary bedroom with a king bed and an ensuite bathroom" width="640" height="478" loading="lazy" decoding="async"><span>Primary Suite</span></button></li>
+        </ul>
+        <h3 class="plans-title">Pre-approved city plans</h3>
+        <ul class="plans plans-3">
+          <li class="plan"><p class="plan-city">Fontana</p><h4>Sunflower — 3 Bedroom</h4><p class="plan-spec">3 BD · 2 BA · 1,143 sq ft · Free plan</p><a href="https://www.fontanaca.gov/3710/Standard-ADU-Plans" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Fontana, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Anaheim</p><h4>Plan 004 — 3 Bedroom</h4><p class="plan-spec">3 BD · 1,199 sq ft · Free plan</p><a href="https://anaheim.net/6349/ADU-Anaheim" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Anaheim, opens in a new tab)</span> →</a></li>
+          <li class="plan"><p class="plan-city">Riverside</p><h4>1,200 Sq Ft — 3 Bedroom</h4><p class="plan-spec">3 BD · 2 BA · 1,200 sq ft · Free plan</p><a href="https://riversideca.gov/cedd/building-safety/standard-plans-details" target="_blank" rel="noopener">View official plan<span class="sr-only"> (Riverside, opens in a new tab)</span> →</a></li>
+        </ul>
+      </div>
+
+      <div class="plans-cta">
+        <p><b>Don’t see your city?</b> MARS designs custom ADUs for any lot, and can build these city plans&nbsp;too.</p>
+        <a class="btn" href="#estimate"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Get My Free Estimate</a>
+      </div>
+      <p class="note">Photos are AI-generated inspiration images, not actual MARS work. Plan details come from each city’s published pre-approved ADU program; check the city’s page for current&nbsp;details.</p>
     </div>
     <dialog class="lightbox" id="lightbox" aria-label="ADU inspiration photo">
       <img id="lb-img" alt="" width="1600" height="1195">
@@ -725,10 +815,31 @@
       });
     }
 
-    // Inspiration gallery: open the full-size photo in a dialog, with previous/next and arrow keys
+    // Size tabs: show one panel (studio to 3 bedrooms) at a time
+    var sizeTabs = Array.prototype.slice.call(document.querySelectorAll('.size-tabs [role="tab"]'));
+    function selectSize(tab, focus) {
+      sizeTabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    sizeTabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { selectSize(tab, false); });
+      tab.addEventListener("keydown", function (e) {
+        var next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? sizeTabs.length - 1 : null;
+        if (next === null) return;
+        e.preventDefault();
+        selectSize(sizeTabs[(next + sizeTabs.length) % sizeTabs.length], true);
+      });
+    });
+
+    // Inspiration photos: open full size in a dialog, with previous/next within the open size and arrow keys
     var lb = document.getElementById("lightbox");
     if (lb && lb.showModal) {
-      var items = Array.prototype.slice.call(document.querySelectorAll(".g-item"));
+      var items = [];
       var lbImg = document.getElementById("lb-img");
       var lbCap = document.getElementById("lb-cap");
       var current = 0, opener = null;
@@ -739,8 +850,11 @@
         lbImg.alt = thumb.alt;
         lbCap.textContent = it.querySelector("span").textContent;
       }
-      items.forEach(function (it, i) {
-        it.addEventListener("click", function () { opener = it; show(i); lb.showModal(); });
+      Array.prototype.forEach.call(document.querySelectorAll(".g-item"), function (it) {
+        it.addEventListener("click", function () {
+          items = Array.prototype.slice.call(it.closest(".gallery").querySelectorAll(".g-item"));
+          opener = it; show(items.indexOf(it)); lb.showModal();
+        });
       });
       document.getElementById("lb-close").addEventListener("click", function () { lb.close(); });
       document.getElementById("lb-prev").addEventListener("click", function () { show(current - 1); });

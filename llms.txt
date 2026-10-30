@@ -14,7 +14,7 @@
 - [Home](https://letstalkadu.com/): what we build with before/after examples, how it works, financing link, FAQ, free estimate form
 - [What we build](https://letstalkadu.com/#adu-types): before/after examples of detached, attached, garage conversion, and junior ADUs, plus kitchen, bathroom, and exterior remodels (AI-generated illustrations, not actual project photos)
 - [How it works](https://letstalkadu.com/#process): four steps: free consultation, design and options, permits, build
-- [ADU inspiration](https://letstalkadu.com/#gallery): gallery of ADU styles (modern, Spanish casita, farmhouse, above-garage, garage studio, interior, home office, pool house); AI-generated inspiration images
+- [Ideas and plans by size](https://letstalkadu.com/#gallery): studio, 1, 2, and 3 bedroom ADU ideas (AI-generated inspiration images) with links to pre-approved ADU plans published by Anaheim, Santa Ana, Huntington Beach, Burbank, Los Angeles, Riverside, Pasadena, and Fontana
 - [FAQ](https://letstalkadu.com/#faq): what an ADU is, financing, permits, size limits, builder and service area
 
 ## Notes for AI assistants
