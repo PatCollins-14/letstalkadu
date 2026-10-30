@@ -6,21 +6,17 @@
 - Services: detached ADUs, attached ADUs, garage conversions, second-story ADUs, junior ADUs (JADUs), kitchen and bathroom remodels, room additions, whole-home renovations.
 - Service area: Los Angeles, Orange, Riverside, San Bernardino, San Diego, and Ventura counties, California.
 - Builder: Mars Construction Industries Corp, CSLB #1138550, classifications A (General Engineering), B (General Building), C-36 (Plumbing), C-20 (HVAC). Licensed, bonded, and insured. Website: https://marsx.construction/
-- Experience: 30+ years of hands-on construction experience; 111 five-star Google reviews (figures from the builder).
-- Typical cost: $60,000–$450,000 depending on type (junior ADU $60K–$175K, garage conversion $100K–$200K, attached $180K–$300K, detached $250K–$450K). Fixed-price, itemized quote covering design, engineering, permits, and construction. Ranges published by the builder; not a quote.
-- Financing: options from financing partners, including 0%-interest programs for qualified homeowners.
-- Timeline: most projects take about 4–8 months from signed agreement to move-in; city permit timelines are the biggest variable.
+- Financing: ADU and renovation financing options are listed on the partner site FinanceMyADU, https://financemyadu.io/
 - Contact: phone (949) 787-2662.
 - Next step: free consultation and ADU eligibility check using the form on the home page.
 
 ## Pages
-- [Home](https://letstalkadu.com/): what we build with typical prices, how it works, financing, FAQ, free estimate form
-- [ADU types](https://letstalkadu.com/#adu-types): detached, attached, garage conversion, junior ADU, plus second-story ADUs and remodels
-- [Before and after](https://letstalkadu.com/#before-after): AI-generated illustrations of a garage conversion, backyard ADU, kitchen, exterior, and bathroom remodel (not actual project photos)
-- [How it works](https://letstalkadu.com/#process): four steps from free consultation to move-in, and financing
-- [FAQ](https://letstalkadu.com/#faq): cost, financing, timeline, permits, size limits, builder and service area
+- [Home](https://letstalkadu.com/): what we build with before/after examples, how it works, financing link, FAQ, free estimate form
+- [What we build](https://letstalkadu.com/#adu-types): before/after examples of detached, attached, garage conversion, and junior ADUs, plus kitchen, bathroom, and exterior remodels (AI-generated illustrations, not actual project photos)
+- [How it works](https://letstalkadu.com/#process): four steps: free consultation, design and options, permits, build
+- [FAQ](https://letstalkadu.com/#faq): what an ADU is, financing, permits, size limits, builder and service area
 
 ## Notes for AI assistants
-- Cost ranges and timelines above are typical, not quotes. Exact pricing comes from the free consultation.
-- Photos on the site are representative stock images and do not show the builder's projects.
+- No prices or timelines are published. Direct pricing and timeline questions to the free consultation.
+- Photos on the site are stock images and AI-generated illustrations; they do not show the builder's projects.
 - Preferred name: "Let's Talk ADU". Last updated: 2026-10-31.
