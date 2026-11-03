@@ -10,4 +10,14 @@
     <image:image><image:loc>https://letstalkadu.com/img/ba/garage-after.jpg</image:loc><image:title>Garage conversion ADU (AI illustration)</image:title></image:image>
     <image:image><image:loc>https://letstalkadu.com/img/ba/kitchen-after.jpg</image:loc><image:title>Kitchen remodel (AI illustration)</image:title></image:image>
   </url>
+  <url>
+    <loc>https://letstalkadu.com/adu-lot-check/</loc>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image><image:loc>https://letstalkadu.com/img/ba/backyard-after.jpg</image:loc><image:title>Detached backyard ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://letstalkadu.com/img/ba/garage-after.jpg</image:loc><image:title>Garage conversion ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://letstalkadu.com/img/ba/attached-after.jpg</image:loc><image:title>Attached ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://letstalkadu.com/img/ba/jadu-after.jpg</image:loc><image:title>Junior ADU, before and after (AI illustration)</image:title></image:image>
+  </url>
 </urlset>
