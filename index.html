@@ -597,7 +597,8 @@
           <div class="success" id="gate-ok" hidden>
             <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
             <h3>Thanks, <span class="ok-name">there</span>!</h3>
-            <p class="hint" style="margin-top:8px">We've got your details. Our team will reach out within 1 business day to go over your lot and your financing&nbsp;options.</p>
+            <p class="hint" style="margin-top:8px" id="gate-ok-text">Your ADU plan is ready. Our team will reach out within 1 business day to go over your lot and your financing&nbsp;options.</p>
+            <a class="btn btn-primary" id="plan-dl" href="#" download="Your-ADU-plan.pdf" hidden style="width:100%;margin-bottom:10px">Download My Plan&nbsp;(PDF)</a>
             <a class="btn btn-ghost" href="tel:+19497872662">Or call now: (949)&nbsp;787-2662</a>
           </div>
         </div>
@@ -1039,7 +1040,8 @@
         studio: [1800, 2300], "1bed": [2000, 2500], "2bed": [2500, 2900], "3bed": [3000, 3600]
       },
       garageMaxSqFt: 400,        // a typical 2-car garage
-      jaduMaxSqFt: 500           // state limit for a junior ADU
+      jaduMaxSqFt: 500,          // state limit for a junior ADU
+      planEmailOn: false         // set true once the GHL workflow emails the plan PDF, so the thank-you says so
     };
 
     // Same CRM inbound webhook as letstalkadu.com (public by design: it can only add leads).
@@ -1156,7 +1158,7 @@
       var lo = mid * (1 - CONFIG.costSpread), hi = mid * (1 + CONFIG.costSpread);
       var rent = CONFIG.rent[answers.size];
       var io = mid * CONFIG.exampleRate / 100 / 12;
-      snapshot = { sqft: sq, cost_low: Math.round(lo), cost_high: Math.round(hi), rent_low: rent[0], rent_high: rent[1], payment_io: Math.round(io) };
+      snapshot = { sqft: sq, cost_low: Math.round(lo / 1000) * 1000, cost_high: Math.round(hi / 1000) * 1000, rent_low: rent[0], rent_high: rent[1], payment_io: Math.round(io) };
 
       $("o-addr").textContent = $("addr").value.trim();
       $("o-type").textContent = TYPE_NAME[answers.setup].replace(" ", " ");
@@ -1179,6 +1181,7 @@
       if (answers.goal === "Family") tip = tip.replace(" The typical rent here could more than cover the estimated payment.", "") + " Many families use an ADU to keep parents or grown kids close, with privacy for everyone.";
       $("o-tip").textContent = tip;
       show(4);
+      loadJsPdf().catch(function () {});
       // Carry this project into the payment calculator so both tell the same story
       $("c-cost").value = Math.round(mid / 5000) * 5000;
       $("c-rent").value = Math.round((rent[0] + rent[1]) / 2 / 50) * 50;
@@ -1441,6 +1444,216 @@
       a.addEventListener("click", function (e) { e.preventDefault(); openModal(a.getAttribute("data-open")); });
     });
 
+    // ---------- Free plan PDF ----------
+    // Built in the visitor's browser from the same numbers as the snapshot, then uploaded to
+    // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
+    var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
+    var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
+    var jsPdfReady = null;
+    function loadJsPdf() {
+      if (!jsPdfReady) {
+        jsPdfReady = new Promise(function (res, rej) {
+          if (window.jspdf) return res(window.jspdf.jsPDF);
+          var sc = document.createElement("script");
+          sc.src = JSPDF_URL; sc.async = true;
+          sc.onload = function () { window.jspdf ? res(window.jspdf.jsPDF) : rej(new Error("jsPDF missing")); };
+          sc.onerror = function () { jsPdfReady = null; rej(new Error("jsPDF failed to load")); };
+          document.head.appendChild(sc);
+        });
+      }
+      return jsPdfReady;
+    }
+    function logoDataUrl() {
+      try {
+        var img = document.querySelector(".logo img");
+        if (!img || !img.naturalWidth) return null;
+        var c = document.createElement("canvas");
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext("2d").drawImage(img, 0, 0);
+        return { url: c.toDataURL("image/png"), ratio: img.naturalWidth / img.naturalHeight };
+      } catch (e) { return null; }
+    }
+    function buildPlanPdf(JsPDF, who) {
+      var C = {
+        navy: [34, 61, 120], deep: [24, 45, 92], orange: [232, 153, 21], orangeSoft: [255, 243, 218],
+        orangeInk: [138, 86, 0], mist: [242, 244, 246], sky: [234, 244, 253], ink: [28, 38, 48],
+        muted: [95, 107, 119], green: [31, 122, 77], greenSoft: [230, 244, 236], line: [219, 227, 234]
+      };
+      var plain = function (t) { return String(t).replace(/ /g, " "); };
+      var doc = new JsPDF({ unit: "pt", format: "letter", compress: true });
+      var W = 612, H = 792, M = 48, CW = W - 2 * M, y = 0;
+      function fill(c) { doc.setFillColor(c[0], c[1], c[2]); }
+      function color(c) { doc.setTextColor(c[0], c[1], c[2]); }
+      function font(style, size, c) { doc.setFont("helvetica", style); doc.setFontSize(size); color(c || C.ink); }
+      // Pat's rule: never leave one word alone on the last line
+      function wrap(t, width) {
+        var lines = doc.splitTextToSize(plain(t), width), w = width;
+        for (var i = 0; i < 12 && lines.length > 1 && !/\s/.test(lines[lines.length - 1].trim()); i++) {
+          w *= 0.96; lines = doc.splitTextToSize(plain(t), w);
+        }
+        return lines;
+      }
+      function para(t, x, width, size, c, style, lh) {
+        font(style || "normal", size, c);
+        var lines = wrap(t, width);
+        doc.text(lines, x, y, { lineHeightFactor: lh || 1.35 });
+        y += lines.length * size * (lh || 1.35);
+        return lines.length;
+      }
+      function heading(t) { y += 16; font("bold", 14, C.deep); doc.text(plain(t), M, y); y += 16; }
+      function footer(n) {
+        doc.setDrawColor(C.line[0], C.line[1], C.line[2]); doc.line(M, H - 66, W - M, H - 66);
+        font("normal", 7.5, C.muted);
+        var t = "Rough planning estimates for education, not a quote, construction bid or loan offer. Loans offered by E Mortgage Capital Inc., NMLS #1416824. Pat Collins, NMLS #1628553, DRE #02143449. Not a commitment to lend. All loans are subject to credit, income, property and underwriting approval. Programs, rates and terms may change. Rental income is not guaranteed. Construction by Mars Construction Industries Corp, CSLB #1138550. Equal Housing Opportunity.";
+        doc.text(wrap(t, CW - 70), M, H - 54, { lineHeightFactor: 1.3 });
+        doc.text("Page " + n + " of 2", W - M, H - 54, { align: "right" });
+      }
+      function box(x, w, h, bg, label, value, note) {
+        fill(bg); doc.roundedRect(x, y, w, h, 8, 8, "F");
+        font("bold", 8.5, C.muted); doc.text(label.toUpperCase(), x + 12, y + 18);
+        font("bold", 16, C.deep); doc.text(doc.splitTextToSize(plain(value), w - 24), x + 12, y + 38);
+        if (note) { font("normal", 9, C.muted); doc.text(doc.splitTextToSize(plain(note), w - 24), x + 12, y + 54); }
+      }
+
+      var d = BA[answers.setup], sq = snapshot.sqft;
+      var mid = (snapshot.cost_low + snapshot.cost_high) / 2;
+      var rentMid = (snapshot.rent_low + snapshot.rent_high) / 2;
+      var net = rentMid * (1 - CONFIG.upkeepShare), io = mid * CONFIG.exampleRate / 100 / 12;
+      var cash = answers.pay === "Cash";
+      var today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+      // ---- Page 1 ----
+      fill(C.navy); doc.rect(0, 0, W, 104, "F");
+      var logo = logoDataUrl();
+      if (logo) doc.addImage(logo.url, "PNG", M, 24, 56 * logo.ratio, 56, undefined, "FAST");
+      font("bold", 20, [255, 255, 255]); doc.text("Your ADU Feasibility & Financing Plan", W - M, 50, { align: "right" });
+      font("normal", 10, [207, 218, 240]); doc.text("Prepared " + today + " · letstalkadu.com", W - M, 70, { align: "right" });
+      y = 140;
+      font("bold", 13, C.ink); doc.text("Prepared for " + plain(who.name), M, y); y += 17;
+      para(who.address, M, CW, 11, C.muted);
+      y += 10;
+
+      heading("Your project at a glance");
+      var bw = (CW - 12) / 2, bh = 70;
+      box(M, bw, bh, C.mist, "What you'd build", TYPE_NAME[answers.setup], SIZE_NAME[answers.size] + ", about " + sq.toLocaleString() + " sq ft");
+      box(M + bw + 12, bw, bh, C.mist, "Estimated build cost", money(snapshot.cost_low) + " - " + money(snapshot.cost_high), "Design, permits and construction");
+      y += bh + 12;
+      box(M, bw, bh, C.greenSoft, "Possible monthly rent", money(snapshot.rent_low) + " - " + money(snapshot.rent_high), "Typical range, before expenses");
+      box(M + bw + 12, bw, bh, C.sky, cash ? "Loan payment" : "Est. HELOC payment", cash ? "$0" : "About " + money(io) + "/mo", cash ? "Paying with cash or savings" : "Interest only, at an example " + CONFIG.exampleRate + "% rate");
+      y += bh + 14;
+
+      // Callout
+      var tip = plain($("o-tip").textContent);
+      font("normal", 10.5, [90, 58, 0]);
+      var tipLines = wrap(tip, CW - 28);
+      var th = tipLines.length * 10.5 * 1.35 + 20;
+      fill(C.orangeSoft); doc.roundedRect(M, y, CW, th, 8, 8, "F");
+      fill(C.orange); doc.rect(M, y, 4, th, "F");
+      doc.text(tipLines, M + 16, y + 17, { lineHeightFactor: 1.35 });
+      y += th + 10;
+
+      heading("How the numbers could work");
+      var rows;
+      if (cash) {
+        rows = [["Monthly rent (middle of the range)", money(rentMid)], ["Set aside 15% for taxes, insurance, repairs, empty months", "-" + money(rentMid - net)], ["Yours to keep each month", money(net)], ["About per year", money(net * 12)]];
+      } else {
+        var m = payoffMonths(mid, net, CONFIG.exampleRate);
+        var payoff = m >= 480 ? "Rent would not cover the interest" : "About " + (m / 12).toFixed(1) + " years";
+        rows = [["Monthly rent (middle of the range)", money(rentMid)], ["Set aside 15% for taxes, insurance, repairs, empty months", "-" + money(rentMid - net)],
+          ["HELOC payment, interest only (" + CONFIG.exampleRate + "%)", "-" + money(io)], [(net - io >= 0 ? "Left over each month" : "You would add each month"), (net - io >= 0 ? "+" : "") + money(Math.abs(net - io))],
+          ["Or put all the rent toward the loan: paid off in", payoff]];
+      }
+      rows.forEach(function (r, i) {
+        var last = i === rows.length - 1 || (!cash && i === 3);
+        font(last ? "bold" : "normal", 10.5, C.ink); doc.text(plain(r[0]), M, y);
+        font("bold", 10.5, last ? C.green : C.ink); doc.text(plain(r[1]), W - M, y, { align: "right" });
+        doc.setDrawColor(C.line[0], C.line[1], C.line[2]); doc.line(M, y + 7, W - M, y + 7);
+        y += 22;
+      });
+      y += 2;
+      var tn = TYPE_NAME[answers.setup].toLowerCase().replace("adu", "ADU");
+      heading("What's usually allowed for " + (/^[aeiou]/.test(tn) ? "an " : "a ") + tn);
+      para(d.rule + ". " + d.ruleN, M, CW, 10.5, C.ink);
+      y += 2;
+      para("Local rules vary. We confirm what applies to your address, including setbacks, during the free site visit.", M, CW, 9.5, C.muted);
+      footer(1);
+
+      // ---- Page 2 ----
+      doc.addPage();
+      fill(C.navy); doc.rect(0, 0, W, 8, "F");
+      y = 56;
+      heading("Ways to pay for it");
+      [
+        ["ADU HELOC (keep my first mortgage)", "ADU & Renovation HELOC", "A credit line on your home's equity. Your first mortgage and its rate stay in place. Apply online, usually with no in-person appraisal."],
+        ["Cash-out refinance", "Cash-out refinance", "Replaces your current mortgage with a larger one and pays you the difference. Best when your current rate is already higher than today's rates. Closing costs apply."],
+        ["Renovation or construction loan", "Renovation or construction loan", "Based on the project itself. Some programs can fund a new ADU when you buy a home or refinance."]
+      ].forEach(function (l) {
+        var mine = answers.pay === l[0];
+        font("normal", 10, C.ink);
+        var lines = wrap(l[2], CW - 28);
+        var h = 30 + lines.length * 13.5 + 8;
+        fill(mine ? C.orangeSoft : C.mist); doc.roundedRect(M, y, CW, h, 8, 8, "F");
+        font("bold", 12, C.deep); doc.text(l[1], M + 14, y + 20);
+        if (mine) { font("bold", 8.5, C.orangeInk); doc.text("YOUR PICK", W - M - 14, y + 20, { align: "right" }); }
+        font("normal", 10, C.ink); doc.text(lines, M + 14, y + 38, { lineHeightFactor: 1.35 });
+        y += h + 8;
+      });
+      y += 6;
+      para(answers.pay === "Not sure" ? "Not sure yet? That's normal. On a quick call we'll compare these side by side for your home." : "Future ADU rent can sometimes help you qualify, depending on the program.", M, CW, 9.5, C.muted);
+
+      heading("Your next steps");
+      [["Free site visit", "We check the yard and setbacks, your electrical panel and your sewer line."],
+       ["See your financing options", "Compare the loans above with real numbers for your home."],
+       ["Design & permits", "We draw the plans, handle the engineering and get city approval, including any corrections."],
+       ["Build & move in", "MARS crews build your ADU through final inspection."]].forEach(function (s, i) {
+        fill(C.orange); doc.circle(M + 11, y + 1, 11, "F");
+        font("bold", 11, C.deep); doc.text(String(i + 1), M + 11, y + 5, { align: "center" });
+        font("bold", 11.5, C.deep); doc.text(s[0], M + 32, y + 4);
+        y += 18; var yy = y;
+        y = yy; para(s[1], M + 32, CW - 32, 10, C.muted); y += 10;
+      });
+
+      y += 6;
+      fill(C.navy); doc.roundedRect(M, y, CW, 86, 10, 10, "F");
+      font("bold", 15, [255, 255, 255]); doc.text("Ready to see if your lot works?", M + 20, y + 30);
+      font("normal", 11, [207, 218, 240]); doc.text("Book your free, no-obligation site visit.", M + 20, y + 52);
+      doc.text("Call (949) 787-2662 or visit letstalkadu.com.", M + 20, y + 68);
+      doc.link(M + 20, y + 58, 230, 14, { url: "https://letstalkadu.com/#visit" });
+      fill(C.orange); doc.roundedRect(W - M - 150, y + 26, 130, 34, 8, 8, "F");
+      font("bold", 12, C.deep); doc.text("(949) 787-2662", W - M - 85, y + 47, { align: "center" });
+      doc.link(W - M - 150, y + 26, 130, 34, { url: "tel:+19497872662" });
+      footer(2);
+      return doc.output("blob");
+    }
+    function uploadPlan(blob, who) {
+      var slug = (who.address || who.name || "plan").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "plan";
+      var fname = "ADU-plan-" + slug + ".pdf";
+      var fd = new FormData();
+      fd.append("UPLOADCARE_PUB_KEY", UPLOADCARE_PUB_KEY);
+      fd.append("UPLOADCARE_STORE", "1");
+      fd.append("file", blob, fname);
+      var ctl = "AbortController" in window ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+      return fetch("https://upload.uploadcare.com/base/", { method: "POST", body: fd, signal: ctl ? ctl.signal : undefined })
+        .then(function (res) { clearTimeout(timer); if (!res.ok) throw new Error("upload " + res.status); return res.json(); })
+        .then(function (j) { if (!j || !j.file) throw new Error("no file id"); return UPLOADCARE_CDN + "/" + j.file + "/" + encodeURIComponent(fname); },
+              function (e) { clearTimeout(timer); throw e; });
+    }
+    var planBlobUrl = null;
+    // Returns extra webhook fields. Never throws: a PDF problem must not lose the lead.
+    function preparePlan(btn, who) {
+      btn.textContent = "Building your plan...";
+      return loadJsPdf().then(function (JsPDF) {
+        var blob = buildPlanPdf(JsPDF, who);
+        if (planBlobUrl) URL.revokeObjectURL(planBlobUrl);
+        planBlobUrl = URL.createObjectURL(blob);
+        btn.textContent = "Saving your plan...";
+        return uploadPlan(blob, who).then(function (url) { return { plan_pdf_url: url }; },
+          function () { return { plan_pdf_url: "", plan_pdf_error: "upload failed" }; });
+      }).catch(function () { return { plan_pdf_url: "", plan_pdf_error: "pdf not built" }; });
+    }
+
     // ---------- Lead forms ----------
     function utm() {
       var out = {};
@@ -1452,7 +1665,7 @@
       if (d.length === 11 && d.charAt(0) === "1") d = d.slice(1);
       if (d.length === 10) el.value = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
     }
-    function wire(prefix, formId, okId, extra) {
+    function wire(prefix, formId, okId, extra, prepare) {
       var form = $(formId), nameEl = $(prefix + "-name"), phoneEl = $(prefix + "-phone"), emailEl = $(prefix + "-email"), addrEl = $(prefix + "-addr");
       var busy = false;
       [nameEl, phoneEl, emailEl, addrEl].forEach(function (el) {
@@ -1473,6 +1686,11 @@
         var first = nameEl.value.trim().split(/\s+/)[0];
         function done() {
           form.hidden = true; $(okId).hidden = false;
+          if (prefix === "g") {
+            if (planBlobUrl) { $("plan-dl").href = planBlobUrl; $("plan-dl").hidden = false; }
+            else $("gate-ok-text").textContent = "We've got your details. Our team will reach out within 1 business day to go over your lot and your financing options.";
+            if (CONFIG.planEmailOn && payload && payload.plan_pdf_url) $("gate-ok-text").textContent = "Your ADU plan is ready, and a copy is on its way to " + payload.email + ". Our team will reach out within 1 business day.";
+          }
           Array.prototype.forEach.call(document.querySelectorAll(".ok-name"), function (s) { s.textContent = first; });
           // Don't make them type it twice if they use another form later
           ["v", "m", "g"].forEach(function (p) {
@@ -1494,9 +1712,15 @@
         busy = true;
         var btn = form.querySelector('button[type="submit"]'), label = btn.innerHTML;
         btn.disabled = true; btn.textContent = "Sending...";
-        var ctl = "AbortController" in window ? new AbortController() : null;
-        var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
-        fetch(GHL_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined })
+        var timer;
+        Promise.resolve(prepare ? prepare(btn, { name: full, address: payload.address || "" }) : {})
+          .then(function (more) {
+            Object.assign(payload, more);
+            btn.textContent = "Sending...";
+            var ctl = "AbortController" in window ? new AbortController() : null;
+            timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+            return fetch(GHL_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined });
+          })
           .then(function (res) { clearTimeout(timer); if (!res.ok) throw new Error(res.status); done(); })
           .catch(function () {
             clearTimeout(timer); busy = false; btn.disabled = false; btn.innerHTML = label;
@@ -1513,7 +1737,7 @@
         est_rent_range: money(snapshot.rent_low) + " - " + money(snapshot.rent_high),
         est_heloc_payment_io: answers.pay === "Cash" ? "" : money(snapshot.payment_io)
       };
-    });
+    }, preparePlan);
     wire("v", "visit-form", "visit-ok", function () {
       return { form_name: "Free property visit", address: $("v-addr").value.trim(), financing_preference: $("v-pay").value };
     });
