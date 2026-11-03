@@ -1,12 +1,14 @@
 # Let's Talk ADU
 
-Single-page website for Let's Talk ADU: ADU design, permits, and construction in Southern California. Live at https://letstalkadu.com
+Website for Let's Talk ADU: ADU lot checks, financing, design, permits, and construction in Southern California. Live at https://letstalkadu.com
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole page (styles, fonts, scripts, and structured data are inline) |
+| `index.html` | The homepage: lot check, before/after slider, financing, calculator, city plans, FAQ. Built from `letstalkadu-feasibility/index.html` with `node build-for-site.js`; edit it there, not here. |
+| `previous-home.html` | The earlier homepage, kept for reference. Hidden from search engines. |
+| `adu-lot-check/` | Redirects to the homepage (the page lived here briefly on 2026-11-04). |
 | `img/` | Photos, logo, social preview image (`og-image.jpg`), and app icons |
 | `favicon.ico` | Browser tab icon |
 | `site.webmanifest` | Web app manifest for home-screen icons |

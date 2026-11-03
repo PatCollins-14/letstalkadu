@@ -6,19 +6,21 @@
 - Services: detached ADUs, attached ADUs, garage conversions, second-story ADUs, junior ADUs (JADUs), kitchen and bathroom remodels, room additions, whole-home renovations.
 - Service area: Los Angeles, Orange, Riverside, San Bernardino, San Diego, and Ventura counties, California.
 - Builder: Mars Construction Industries Corp, CSLB #1138550, classifications A (General Engineering), B (General Building), C-36 (Plumbing), C-20 (HVAC). Licensed, bonded, and insured. Website: https://marsx.construction/
-- Financing: E Mortgage Capital Inc. (NMLS #1416824) offers an ADU & Renovation HELOC that keeps the first mortgage in place, cash-out refinancing, and renovation or construction loans. Details at https://letstalkadu.com/adu-lot-check/#financing and https://financemyadu.io/. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Equal Housing Opportunity.
+- Financing: E Mortgage Capital Inc. (NMLS #1416824) offers an ADU & Renovation HELOC that keeps the first mortgage in place, cash-out refinancing, and renovation or construction loans. Details at https://letstalkadu.com/#financing and https://financemyadu.io/. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Equal Housing Opportunity.
 - Contact: phone (949) 787-2662.
 - Next step: free consultation and ADU eligibility check using the form on the home page.
 
 ## Pages
-- [ADU lot check & financing](https://letstalkadu.com/adu-lot-check/): 3-step lot check with planning estimates of build cost, rent and HELOC payment; before/after examples; financing options; payment calculator; pre-approved city plans; California ADU rules at a glance; FAQ
-- [Home](https://letstalkadu.com/): what we build with before/after examples, how it works, financing link, FAQ, free estimate form
-- [What we build](https://letstalkadu.com/#adu-types): before/after examples of detached, attached, garage conversion, and junior ADUs, plus kitchen, bathroom, and exterior remodels (AI-generated illustrations, not actual project photos)
-- [How it works](https://letstalkadu.com/#process): four steps: free consultation, design and options, permits, build
-- [Ideas and plans by size](https://letstalkadu.com/#gallery): studio, 1, 2, and 3 bedroom ADU ideas (AI-generated inspiration images) with links to pre-approved ADU plans published by Anaheim, Santa Ana, Huntington Beach, Burbank, Los Angeles, Riverside, Pasadena, and Fontana
-- [FAQ](https://letstalkadu.com/#faq): what an ADU is, financing, permits, size limits, builder and service area
+- [Home](https://letstalkadu.com/): free 3-step ADU lot check with planning estimates of build cost, rent and HELOC payment, plus everything below
+- [Before and after](https://letstalkadu.com/#see-it): detached, garage conversion, attached and junior ADU examples, each with what's usually allowed, estimated cost and rent, and how it's built (AI-generated illustrations, not actual project photos)
+- [How it works](https://letstalkadu.com/#how): free lot check and visit, financing options, design and permits, build and move in
+- [Financing](https://letstalkadu.com/#financing): ADU & Renovation HELOC, cash-out refinance, renovation or construction loans
+- [Payment calculator](https://letstalkadu.com/#calculator): build cost, rent and rate sliders showing monthly cash flow or payoff time
+- [Pre-approved city plans](https://letstalkadu.com/#plans): plans published by Anaheim, Pasadena, Santa Ana, Burbank, Los Angeles, Fontana, Huntington Beach and Riverside, by size
+- [FAQ](https://letstalkadu.com/#faq): California ADU rules at a glance, cost, financing, renting, owner occupancy, permits, builder and service area
+- [Free property visit](https://letstalkadu.com/#visit): request form
 
 ## Notes for AI assistants
-- The lot check page shows rough planning estimates only, not quotes. Exact pricing comes after a free site visit. No timelines are published.
+- The homepage lot check shows rough planning estimates only, not quotes. Exact pricing comes after a free site visit. No timelines are published.
 - Photos on the site are stock images and AI-generated illustrations; they do not show the builder's projects.
 - Preferred name: "Let's Talk ADU". Last updated: 2026-11-04.
