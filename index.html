@@ -2095,19 +2095,26 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261107";  // the 5-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;
     function loadJsPdf() {
       if (!jsPdfReady) {
-        jsPdfReady = new Promise(function (res, rej) {
-          if (window.jspdf) return res(window.jspdf.jsPDF);
-          var sc = document.createElement("script");
-          sc.src = JSPDF_URL; sc.async = true;
-          sc.onload = function () { window.jspdf ? res(window.jspdf.jsPDF) : rej(new Error("jsPDF missing")); };
-          sc.onerror = function () { jsPdfReady = null; rej(new Error("jsPDF failed to load")); };
-          document.head.appendChild(sc);
-        });
+        var load = function (src, ready) {
+          return new Promise(function (res, rej) {
+            if (ready()) return res();
+            var sc = document.createElement("script");
+            sc.src = src; sc.async = true;
+            sc.onload = function () { ready() ? res() : rej(new Error(src + " did not load")); };
+            sc.onerror = function () { rej(new Error(src + " failed to load")); };
+            document.head.appendChild(sc);
+          });
+        };
+        jsPdfReady = Promise.all([
+          load(JSPDF_URL, function () { return !!window.jspdf; }),
+          load(BLUEPRINT_JS_URL, function () { return typeof window.buildBlueprintPdf === "function"; })
+        ]).then(function () { return window.jspdf.jsPDF; }, function (e) { jsPdfReady = null; throw e; });
       }
       return jsPdfReady;
     }
@@ -2124,274 +2131,13 @@
         return { url: c.toDataURL("image/png"), ratio: img.naturalWidth / img.naturalHeight };
       } catch (e) { return null; }
     }
+    // The 5-page blueprint itself lives in js/blueprint-pdf.js (shared with samples/make-site-samples.js),
+    // fed with this page's numbers so the PDF matches what the visitor saw.
     function buildPlanPdf(JsPDF, who) {
-      var C = {
-        navy: [34, 61, 120], deep: [24, 45, 92], orange: [232, 153, 21], orangeSoft: [255, 243, 218],
-        orangeInk: [138, 86, 0], mist: [242, 244, 246], sky: [234, 244, 253], ink: [28, 38, 48],
-        muted: [95, 107, 119], green: [31, 122, 77], greenSoft: [230, 244, 236], line: [219, 227, 234],
-        red: [180, 35, 24], white: [255, 255, 255]
-      };
-      var plain = function (t) { return String(t).replace(/ /g, " ").replace(/•/g, "·"); };
-      var doc = new JsPDF({ unit: "pt", format: "letter", compress: true });
-      var W = 612, H = 792, M = 48, CW = W - 2 * M, BOTTOM = H - 100, y = 0;
-      function fill(c) { doc.setFillColor(c[0], c[1], c[2]); }
-      function stroke(c) { doc.setDrawColor(c[0], c[1], c[2]); }
-      function color(c) { doc.setTextColor(c[0], c[1], c[2]); }
-      function font(style, size, c) { doc.setFont("helvetica", style); doc.setFontSize(size); color(c || C.ink); }
-      // Pat's rule: never leave one word alone on the last line
-      function wrap(t, width) {
-        var lines = doc.splitTextToSize(plain(t), width), w = width;
-        for (var i = 0; i < 12 && lines.length > 1 && !/\s/.test(lines[lines.length - 1].trim()); i++) {
-          w *= 0.96; lines = doc.splitTextToSize(plain(t), w);
-        }
-        return lines;
-      }
-      function newPage() { doc.addPage(); fill(C.navy); doc.rect(0, 0, W, 8, "F"); y = 44; }
-      function ensure(h) { if (y + h > BOTTOM) newPage(); }
-      function para(t, size, c, style, x, width) {
-        font(style || "normal", size || 10.5, c);
-        var lines = wrap(t, width || CW), lh = (size || 10.5) * 1.4;
-        ensure(lines.length * lh + 4);
-        y += (size || 10.5) + 2;
-        doc.text(lines, x || M, y, { lineHeightFactor: 1.4 });
-        y += (lines.length - 1) * lh + 6;
-      }
-      function heading(n, t, intro) {
-        ensure(64); y += 18;
-        fill(C.orange); doc.circle(M + 10, y - 4.5, 10, "F");
-        font("bold", 11, C.deep); doc.text(String(n), M + 10, y - 0.5, { align: "center" });
-        font("bold", 15, C.deep); doc.text(plain(t), M + 28, y); y += 8;
-        if (intro) { para(intro, 10.5, C.muted); y += 4; } else y += 10;
-      }
-      function box(x, bw, bh, bg, label, value, note, valueColor) {
-        fill(bg); doc.roundedRect(x, y, bw, bh, 8, 8, "F");
-        font("bold", 8.5, C.muted); doc.text(plain(label).toUpperCase(), x + 12, y + 18);
-        font("bold", 17, valueColor || C.deep); doc.text(plain(value), x + 12, y + 40);
-        if (note) { font("normal", 9, C.muted); doc.text(wrap(note, bw - 24), x + 12, y + 56, { lineHeightFactor: 1.3 }); }
-      }
-      // A simple table: first row is the header; widths in points; cells wrap
-      function table(widths, rows, opts) {
-        opts = opts || {};
-        var pad = 8, size = opts.size || 9.5, lh = size * 1.35;
-        var total = rows.reduce(function (sum, r, ri) { return sum + Math.max.apply(null, r.map(function (c, ci) { font(ri === 0 || (opts.boldFirst && ci === 0) ? "bold" : "normal", ri === 0 ? 8.5 : size); return wrap(c, widths[ci] - 2 * pad).length; })) * lh + 2 * pad - 2; }, 0);
-        if (total < BOTTOM - 60) ensure(total + 4);
-        y += 4;
-        rows.forEach(function (r, ri) {
-          var head = ri === 0, cells = r.map(function (c, ci) { font(head || (opts.boldFirst && ci === 0) ? "bold" : "normal", head ? 8.5 : size); return wrap(c, widths[ci] - 2 * pad); });
-          var rh = Math.max.apply(null, cells.map(function (c) { return c.length; })) * lh + 2 * pad - 2;
-          ensure(rh);
-          if (head) { fill(C.navy); doc.rect(M, y, CW, rh, "F"); }
-          else if (opts.highlightLast && ri === rows.length - 1) { fill(C.greenSoft); doc.rect(M, y, CW, rh, "F"); }
-          else if (ri % 2 === 0) { fill(C.mist); doc.rect(M, y, CW, rh, "F"); }
-          var x = M;
-          cells.forEach(function (lines, ci) {
-            var bold = head || (opts.boldFirst && ci === 0) || (opts.highlightLast && ri === rows.length - 1);
-            font(bold ? "bold" : "normal", head ? 8.5 : size, head ? C.white : (opts.highlightLast && ri === rows.length - 1 ? C.green : C.ink));
-            doc.text(head ? lines.map(function (l) { return l.toUpperCase(); }) : lines, x + pad, y + pad + size - 1, { lineHeightFactor: 1.35 });
-            x += widths[ci];
-          });
-          y += rh;
-        });
-        y += 6;
-      }
-      function callout(t) {
-        font("normal", 10, [90, 58, 0]);
-        var lines = wrap(t, CW - 28), h = lines.length * 14 + 18;
-        ensure(h);
-        fill(C.orangeSoft); doc.roundedRect(M, y, CW, h, 8, 8, "F");
-        fill(C.orange); doc.rect(M, y, 4, h, "F");
-        doc.text(lines, M + 16, y + 16, { lineHeightFactor: 1.4 });
-        y += h + 8;
-      }
-
-      // ---- The numbers (same formulas as the page) ----
-      var d = bp.scope, rate = CONFIG.helocRate / 100, r = rate / 12, cost = d.cost, rent = d.rent;
-      var io = cost * r;                                              // Phase 1: interest only
-      var amort = standardPlan(cost, rate).payment;                  // Phase 2: 30-year repayment
-      var amort15 = standardPlan(cost, rate, CONFIG.repayAlt).payment; // 15-year repayment option
-      var span = CONFIG.drawYears + CONFIG.repayYears;
-      var keep = rent * (1 - CONFIG.opExShare);                      // rent after the 15% set-aside
-      var cf1 = keep - io, cf2 = keep - amort;
-      var stdInterest = standardPlan(cost, rate).interest;
-      var fast = payoffMonths(cost, keep, rate);
-      var fastOk = fast.months < span * 12;
-      var mtr = Math.round(rent * (3100 / 2350) / 50) * 50;          // ratio from the Pasadena case study
-      var sign = function (v) { return (v >= 0 ? "+" : "-") + money(Math.abs(v)); };
-      var today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-
-      // ---- Page 1: header, at a glance, how the loan works ----
-      fill(C.navy); doc.rect(0, 0, W, 104, "F");
-      var logo = logoDataUrl();
-      if (logo) doc.addImage(logo.url, "PNG", M, 24, 56 * logo.ratio, 56, undefined, "FAST");
-      font("bold", 19, C.white); doc.text("ADU Feasibility & Financing Blueprint", W - M, 50, { align: "right" });
-      font("normal", 10, [207, 218, 240]); doc.text("Prepared " + today + " · letstalkadu.com", W - M, 70, { align: "right" });
-      y = 132;
-      fill(C.green); doc.roundedRect(M, y - 12, 150, 18, 9, 9, "F");
-      font("bold", 8.5, C.white); doc.text("ZONING FEASIBILITY VERIFIED", M + 75, y, { align: "center" });
-      y += 26;
-      font("bold", 17, C.deep); doc.text(wrap(who.address || "Your property", CW), M, y); y += 16;
-      font("normal", 10, C.muted); doc.text("Prepared for " + plain(who.name) + " · Mars Construction CSLB #1138550 · Automated Parcel Analysis", M, y); y += 20;
-      para("This report shows what it could cost to build a " + d.title.replace("Detached", "detached").replace("Custom-Size", "custom-size") + " on your property, how a home equity loan would pay for it, and how much money it could bring in each month. Every number is an estimate to help you plan. It is not a quote or a loan offer.", 10.5, C.ink);
-
-      heading(1, "Your project at a glance");
-      var bw = (CW - 12) / 2, bh = 72;
-      ensure(bh * 2 + 12);
-      box(M, bw, bh, C.mist, "Cost to build", money(cost), "All-in turnkey price at about $250 per sq ft");
-      box(M + bw + 12, bw, bh, C.greenSoft, "Monthly rent (long-term)", money(rent) + " / mo", money(rent * 12) + " a year before costs", C.green);
-      y += bh + 12;
-      box(M, bw, bh, C.orangeSoft, "Loan payment, years 1-5", money(io) + " / mo", "Interest only at " + CONFIG.helocRate.toFixed(2) + "%", C.orangeInk);
-      box(M + bw + 12, bw, bh, C.sky, "Value it adds on day 1", "+" + money(d.equity), "Appraised about " + money(d.appraisal) + " vs " + money(cost) + " to build", C.navy);
-      y += bh + 6;
-
-      heading(2, "How the loan works", (answers.pay === "Cash on Hand" ? "You picked cash, so you may not need a loan. This section shows what borrowing would look like, in case you want to keep your cash. " : "") + "A HELOC (home equity line of credit) is a loan that uses the value of the home you already own. Your current mortgage and its rate stay the same. This plan borrows the full " + money(cost) + " at " + CONFIG.helocRate.toFixed(2) + "% and pays it back in two phases: a 5-year draw, then 30 years of repayment (a 15-year repayment is also offered).");
-      table([96, 70, 190, 80, 80], [
-        ["Phase", "Years", "What you pay", "Monthly", "Yearly"],
-        ["Phase 1: Interest only", "1 to 5", "Only the interest. The amount you owe stays at " + money(cost) + ".", money(io), money(io * 12)],
-        ["Phase 2: Pay it down", "6 to 35", "Interest plus part of the loan each month, until you owe $0.", money(amort), money(amort * 12)],
-        ["Or: 15-year payback", "6 to 20", "Same idea with bigger payments, paid off 15 years sooner.", money(amort15), money(amort15 * 12)]
-      ], { boldFirst: true });
-      para("The ADU HELOC: a $5,000 to $1M line, up to 89% CLTV if you live in the home (75% for a rental), 620+ credit, no appraisal (an automated value instead), and fixed-rate options. The full amount is drawn at the start and you can redraw as you repay.", 9.5, C.muted);
-      para("Why two phases? Phase 1 keeps the payment low while the ADU is built and rented. In Phase 2 every payment also shrinks the loan, so the payment is a little higher. These payments use an example " + CONFIG.helocRate.toFixed(2) + "% rate. Real HELOC rates are usually variable, so payments can change. Your rate, APR, fees and terms depend on credit, income, home value and lender approval.", 9.5, C.muted);
-
-      // ---- What you keep ----
-      heading(3, "What you keep each month", "Not every dollar of rent is profit. Set aside about 15% for months with no tenant, property tax on the new unit, insurance and repairs. What is left pays the loan, and the rest is yours.");
-      table([216, 150, 150], [
-        ["Each month", "Phase 1 (years 1-5)", "Phase 2 (years 6-35)"],
-        ["Rent you collect", money(rent), money(rent)],
-        ["Set aside 15% for empty months, tax, insurance, repairs", "-" + money(rent - keep), "-" + money(rent - keep)],
-        ["Loan payment", "-" + money(io), "-" + money(amort)],
-        [(cf2 >= 0 ? "Money left over for you" : "Money left over (or added)"), sign(cf1), sign(cf2)]
-      ], { boldFirst: true, highlightLast: true });
-      ensure(60);
-      var hw = (CW - 12) / 2;
-      fill(C.mist); doc.roundedRect(M, y, hw, 52, 8, 8, "F"); doc.roundedRect(M + hw + 12, y, hw, 52, 8, 8, "F");
-      font("bold", 9.5, C.deep); doc.text("Gross yield: " + (rent * 12 / cost * 100).toFixed(1) + "%", M + 12, y + 18);
-      doc.text("Cap rate: " + (keep * 12 / cost * 100).toFixed(1) + "%", M + hw + 24, y + 18);
-      font("normal", 8.5, C.muted);
-      doc.text(wrap("A year of rent divided by the cost to build. Think of it as the yearly return before any costs.", hw - 24), M + 12, y + 32, { lineHeightFactor: 1.3 });
-      doc.text(wrap("A year of rent after the 15% set-aside, divided by the cost to build, before the loan.", hw - 24), M + hw + 24, y + 32, { lineHeightFactor: 1.3 });
-      y += 60;
-
-      // ---- Payoff + graph ----
-      heading(4, "Paying the loan off", "The graph shows how much you still owe each year. The standard plan follows the two phases above. The fast plan puts all the rent left after the 15% set-aside toward the loan, so it disappears much sooner.");
-      var step = cost <= 150000 ? 25000 : 50000, gh = 196, gx = M + 46, gw = CW - 56, gy, maxY = Math.ceil(cost / step) * step;
-      ensure(gh + 46);
-      gy = y + 8;
-      var X = function (yr) { return gx + yr / span * gw; }, Y = function (v) { return gy + gh - v / maxY * gh; };
-      // Phase 1 band
-      fill(C.orangeSoft); doc.rect(X(0), gy, X(5) - X(0), gh, "F");
-      font("bold", 8, C.orangeInk); doc.text("PHASE 1", X(2.5), gy + 12, { align: "center" });
-      font("bold", 8, C.muted); doc.text("PHASE 2: PAY IT DOWN", X((5 + span) / 2), gy + 12, { align: "center" });
-      // grid + axes
-      stroke(C.line); doc.setLineWidth(0.6);
-      for (var tv = 0; tv <= maxY; tv += step) {
-        doc.line(gx, Y(tv), gx + gw, Y(tv));
-        font("normal", 8, C.muted); doc.text("$" + Math.round(tv / 1000) + "k", gx - 6, Y(tv) + 3, { align: "right" });
-      }
-      [0, 5, 10, 15, 20, 25, 30, 35].forEach(function (yr) { font("normal", 8, C.muted); doc.text(yr === 0 ? "Start" : "Yr " + yr, X(yr), gy + gh + 13, { align: "center" }); });
-      // standard plan balance
-      var bal = function (m) { if (m <= 60) return cost; var k = m - 60; return Math.max(0, cost * Math.pow(1 + r, k) - amort * (Math.pow(1 + r, k) - 1) / r); };
-      stroke(C.navy); doc.setLineWidth(2);
-      for (var m = 0; m < span * 12; m += 3) doc.line(X(m / 12), Y(bal(m)), X((m + 3) / 12), Y(bal(m + 3)));
-      // fast plan balance
-      if (fastOk) {
-        stroke(C.green); doc.setLineWidth(2);
-        var b = cost, prev = cost;
-        for (var mm = 1; mm <= fast.months; mm++) { b = Math.max(0, b - (keep - b * r)); doc.line(X((mm - 1) / 12), Y(prev), X(mm / 12), Y(b)); prev = b; }
-        fill(C.green); doc.circle(X(fast.months / 12), Y(0), 3.5, "F");
-        font("bold", 8.5, C.green); doc.text("Paid off: " + ym(fast.months), X(fast.months / 12) + 6, Y(0) - 8);
-      }
-      doc.setLineWidth(0.6);
-      // legend
-      var ly = gy + gh + 30;
-      fill(C.navy); doc.rect(gx, ly - 6, 14, 3, "F"); font("normal", 9, C.ink); doc.text("Standard plan (paid off in " + span + " years)", gx + 20, ly - 2);
-      if (fastOk) { fill(C.green); doc.rect(gx + 250, ly - 6, 14, 3, "F"); doc.text("Fast plan (all leftover rent to the loan)", gx + 270, ly - 2); }
-      y = ly + 14;
-      table([216, 150, 150], [
-        ["Payoff", "Standard plan", "Fast plan"],
-        ["Loan paid off in", span + " years", fastOk ? ym(fast.months) : "Rent too low"],
-        ["Total interest you pay", money(stdInterest), fastOk ? money(fast.interest) : "-"],
-        ["Interest you save", "-", fastOk ? money(stdInterest - fast.interest) : "-"]
-      ], { boldFirst: true });
-      if (fastOk) para("The trade-off: in the fast plan you keep no rent until the loan is gone. After that, all the rent left after costs is yours.", 9.5, C.muted);
-
-      // ---- Short, mid and long-term rentals ----
-      heading(5, "Three ways to rent it", "How long each guest stays changes the rent, the work and whether the city allows it.");
-      table([92, 141, 141, 142], [
-        ["", "Long-term", "Mid-term", "Short-term"],
-        ["How long they stay", "12-month lease", "30 days to about 6 months", "Under 30 days"],
-        ["Who rents it", "Families, workers, students", "Traveling nurses, people between homes, insurance stays", "Vacationers on Airbnb or VRBO"],
-        ["Estimated rent", money(rent) + " / mo", "About " + money(mtr) + " / mo", "Not estimated"],
-        ["Extra work and cost", "Lowest. Unfurnished, one tenant a year", "Furnish it and pay utilities. New guests every few months", "Highest. Cleaning between guests"],
-        ["Allowed?", "Yes", "Yes, if each stay is 30 days or more", "Usually no. California lets cities require 30-day minimums, and the City of LA does not allow ADUs as short-term rentals"]
-      ], { boldFirst: true, size: 9 });
-      para("The mid-term estimate uses the same mid-term to long-term rent ratio as our Pasadena case study ($3,100 vs $2,350). This blueprint's payoff and cash-flow numbers all use long-term rent.", 9, C.muted);
-
-      // ---- Equity ----
-      heading(6, "What it adds to your home's value", "Equity is what your property is worth minus what you owe on it.");
-      table([216, 300], [
-        ["Item", "Amount"],
-        ["Estimated appraised value the ADU adds", money(d.appraisal)],
-        ["Cost to build", "-" + money(cost)],
-        ["New equity on day 1 (once the city signs off)", "+" + money(d.equity)]
-      ], { boldFirst: true, highlightLast: true });
-
-      // ---- Rules ----
-      heading(7, "Rules that apply to your lot");
-      var rules = [
-        ["Setbacks:", "4-foot rear & side setbacks compliant. State law caps how far a detached ADU must sit from the back and side lines at 4 feet."],
-        ["City impact fees:", bp.impact + ". " + (d.impactExempt ? "ADUs of 750 sq ft or less skip city impact fees. School district fees can still apply to ADUs over 500 sq ft." : "Over 750 sq ft, the city can charge impact fees and the school district can charge fees too. A 749 sq ft design avoids the city fees.")],
-        ["Parking:", "0 replacement stalls required (Transit Exemption). Within 1/2 mile of public transit, the city cannot require parking for the ADU, and converting a garage never requires replacing its parking."],
-        ["Property tax:", "Only the new ADU is added to your tax bill (Prop 13). Your home's existing tax base stays the same."],
-        ["Tax shelter:", "Eligible for Cost Segregation & HELOC interest write-offs. Ask your tax advisor how this applies to you."]
-      ];
-      if (answers.ptype === "Duplex / Multi-Family") rules.splice(1, 0, ["Duplex or multi-family lot:", "Allows up to 2 detached ADUs."]);
-      rules.forEach(function (rl) {
-        font("bold", 10, C.ink);
-        var lw = doc.getTextWidth(rl[0]) + 4;
-        font("normal", 10, C.ink);
-        var firstW = CW - 18 - lw, words = plain(rl[1]).split(" "), first = "";
-        while (words.length && doc.getTextWidth((first ? first + " " : "") + words[0]) <= firstW) first = (first ? first + " " : "") + words.shift();
-        if (words.length === 1 && first.indexOf(" ") > 0) { words.unshift(first.slice(first.lastIndexOf(" ") + 1)); first = first.slice(0, first.lastIndexOf(" ")); }
-        var rest = words.length ? wrap(words.join(" "), CW - 18) : [], h = (1 + rest.length) * 14;
-        ensure(h + 8); y += 12;
-        fill(C.green); doc.circle(M + 4, y - 3.5, 3.5, "F");
-        font("bold", 10, C.ink); doc.text(rl[0], M + 14, y);
-        font("normal", 10, C.ink); doc.text(first, M + 14 + lw, y);
-        if (rest.length) doc.text(rest, M + 14, y + 14, { lineHeightFactor: 1.4 });
-        y += (h - 14) + 8;
+      var doc = window.buildBlueprintPdf(JsPDF, {
+        name: who.name, address: who.address, ptype: answers.ptype, pay: answers.pay,
+        scope: bp.scope, config: CONFIG, logo: logoDataUrl()
       });
-      callout("Next step: a free on-site utility & sewer scan. We verify your main electrical panel capacity (200A) and sewer invert depth before you spend anything on plans.");
-
-      // ---- Next steps + contact ----
-      heading(8, "How we get it built", "Your financing pick: " + answers.pay + ".");
-      [["Feasibility & fast-track plans", "We check setbacks, utilities and pre-approved city plans before you pay for engineering."],
-       ["In-house ADU lending", "We structure HELOCs, 2nd mortgages, and construction-to-perm financing that can qualify you using cash out refinance."],
-       ["Turnkey construction by Mars Construction, CSLB #1138550", "Guaranteed fixed-price construction at approximately $250/sq ft can go up and down depending on your situation. Permit-to-key: 3-6 months."]].forEach(function (s, i) {
-        ensure(52); y += 14;
-        font("bold", 10.5, C.deep); doc.text((i + 1) + ".  " + s[0], M, y); y += 1;
-        para(s[1], 9.5, C.muted, "normal", M + 16, CW - 16);
-      });
-      ensure(84); y += 6;
-      fill(C.navy); doc.roundedRect(M, y, CW, 74, 10, 10, "F");
-      font("bold", 14, C.white); doc.text("Schedule your free feasibility site walk", M + 18, y + 27);
-      font("normal", 10, [207, 218, 240]);
-      doc.text("Mon - Sat: 7:30 AM - 6:00 PM · Book online at letstalkadu.com", M + 18, y + 47);
-      doc.link(M + 18, y + 37, 300, 14, { url: "https://letstalkadu.com/#visit" });
-      fill(C.orange); doc.roundedRect(W - M - 148, y + 20, 130, 34, 8, 8, "F");
-      font("bold", 12, C.deep); doc.text("(949) 787-2662", W - M - 83, y + 41, { align: "center" });
-      doc.link(W - M - 148, y + 20, 130, 34, { url: "tel:+19497872662" });
-      y += 84;
-
-      // ---- Footer on every page ----
-      var n = doc.getNumberOfPages();
-      for (var p = 1; p <= n; p++) {
-        doc.setPage(p);
-        stroke(C.line); doc.setLineWidth(0.6); doc.line(M, H - 84, W - M, H - 84);
-        font("normal", 7.5, C.muted);
-        doc.text(wrap("Estimates for planning only, not a quote, bid, appraisal, zoning decision or loan offer. " + CONFIG.helocRate.toFixed(2) + "% is an example interest rate, not an APR; HELOC rates are usually variable. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS #1416824. Pat Collins, NMLS #1628553, DRE #02143449. Not a commitment to lend. All loans are subject to credit, income, property and underwriting approval. Programs, rates and terms may change. Construction by Mars Construction Industries Corp, CSLB #1138550. Equal Housing Opportunity.", CW - 70), M, H - 72, { lineHeightFactor: 1.3 });
-        doc.text("Page " + p + " of " + n, W - M, H - 72, { align: "right" });
-      }
       return doc.output("blob");
     }
     function uploadPlan(blob, who) {
