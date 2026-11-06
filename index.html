@@ -92,6 +92,7 @@
     .navcta { display: flex; gap: 14px; align-items: center; flex: none; }
     .navcta .phone { display: inline-flex; align-items: center; gap: 6px; color: var(--navy); font-weight: 700; text-decoration: none; font-size: 15px; white-space: nowrap; }
     .navcta .phone svg { color: var(--orange-ink); }
+    @media (min-width: 1441px) { .navcta .phone::after { content: "(949) 787-2662"; } }
     .menu-btn { display: none; width: 46px; height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; color: var(--navy); cursor: pointer; place-items: center; }
     .menu-panel { display: none; }
     @media (max-width: 1240px) { .navlinks a { padding: 8px 9px; font-size: 14px; } .navcta .phone span { display: none; } }
@@ -802,6 +803,7 @@
       details.terms-wrap { margin-top: 12px; }
       details.terms-wrap > summary { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--mist); color: var(--navy-deep); font-weight: 700; font-size: 14.5px; list-style: none; cursor: pointer; }
       details.terms-wrap > summary span { flex: 1; }
+      details.terms-wrap > summary .kt-ic { flex: none; font-size: 18px; line-height: 1; }
       details.terms-wrap > summary .chev { display: block; color: var(--navy); }
       details.terms-wrap > summary:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
       .terms { margin-top: 8px; }
@@ -811,7 +813,6 @@
       .logo { display: inline-flex; align-items: center; min-height: 44px; }
       .navcta { gap: 8px; }
       .navcta .phone { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; }
-      .navcta .phone span { display: none; }
       .navcta .btn { min-height: 44px; padding: 10px 14px; white-space: nowrap; font-size: 15px; }
       .menu-btn { width: 44px; height: 44px; }
       .menu-panel { top: 100%; }
@@ -881,7 +882,7 @@
         <a href="#faq">ADU FAQ</a>
       </div>
       <div class="navcta">
-        <a class="phone" href="tel:+19497872662" aria-label="Call (949) 787-2662"><svg width="18" height="18" aria-hidden="true"><use href="#i-phone"/></svg><span>(949) 787-2662</span></a>
+        <a class="phone" href="tel:+19497872662" aria-label="Call (949) 787-2662"><svg width="18" height="18" aria-hidden="true"><use href="#i-phone"/></svg></a>
         <a class="btn btn-primary" href="#feasibility">Check My&nbsp;Lot</a>
         <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu-panel" aria-label="Open menu"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
       </div>
@@ -1041,7 +1042,7 @@
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Tax Shelter:</strong> Eligible for Cost Segregation &amp; HELOC interest&nbsp;write-offs.</span></li>
           </ul>
 
-          <details class="disc in-card" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the free site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></details>
+          <details class="disc in-card"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the free site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></details>
           <div class="bp-next">
             <div><b>Next Step: Free On-Site Utility &amp; Sewer&nbsp;Scan</b><span>We verify your main electrical panel capacity (200A) and sewer invert&nbsp;depth.</span></div>
             <button type="button" class="btn btn-primary" data-open="Feasibility Form Blueprint">Schedule Free Feasibility Site&nbsp;Walk</button>
@@ -1085,7 +1086,7 @@
           <div class="chips2"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Guaranteed Fixed-Price&nbsp;Contract</span><span><svg width="16" height="16"><use href="#i-clock"/></svg>Permit-to-Key: <strong>3–6&nbsp;Months</strong></span></div>
         </div>
       </div>
-      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Fixed pricing and timelines are set in your written construction contract after the site walk and final plans. Cost can change with site conditions, utility upgrades and city requirements. Permit-to-key time depends on city plan check and inspections. Loans are subject to credit, income, property and underwriting&nbsp;approval.</span></details>
+      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Fixed pricing and timelines are set in your written construction contract after the site walk and final plans. Cost can change with site conditions, utility upgrades and city requirements. Permit-to-key time depends on city plan check and inspections. Loans are subject to credit, income, property and underwriting&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1126,7 +1127,7 @@
           </div>
         </div>
       </div>
-      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration purposes only. The costs, rents, rates and payments shown for each example are not actual numbers, quotes or loan offers. Your numbers depend on your property, your build contract and loan&nbsp;approval.</span></details>
+      <details class="disc on-mist"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration purposes only. The costs, rents, rates and payments shown for each example are not actual numbers, quotes or loan offers. Your numbers depend on your property, your build contract and loan&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1147,7 +1148,7 @@
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Minimum <strong class="hl">620</strong> credit&nbsp;score</span></li>
             </ul>
           </details>
-          <details class="pcard" open>
+          <details class="pcard">
             <summary><h3>Program&nbsp;Features<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span><strong class="hl">5-year</strong> draw with <strong class="hl">15&nbsp;or&nbsp;30-year</strong>&nbsp;repayment</span></li>
@@ -1157,14 +1158,14 @@
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Initial <strong class="hl">soft credit pull</strong>, so checking won't affect your credit&nbsp;score</span></li>
             </ul>
           </details>
-          <details class="pcard" open>
+          <details class="pcard">
             <summary><h3>DTI and&nbsp;Qualification<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to <strong class="hl">55%&nbsp;DTI</strong> (owner-occupied) / <strong class="hl">50%</strong>&nbsp;(investment)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Must show positive cash flow and retain $30K&nbsp;equity</span></li>
             </ul>
           </details>
-          <details class="pcard" open>
+          <details class="pcard">
             <summary><h3>Income Types&nbsp;Allowed<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Salaried, self-employed, retired, and other documented&nbsp;income</span></li>
@@ -1181,8 +1182,8 @@
           <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Multiple ways to access and repay&nbsp;funds</span></li>
         </ul>
       </div>
-      <details class="terms-wrap" open>
-        <summary><svg width="20" height="20" aria-hidden="true"><use href="#i-book"/></svg><span>Understanding Key Terms (CLTV, DTI,&nbsp;AVM)</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+      <details class="terms-wrap">
+        <summary><span class="kt-ic" aria-hidden="true">📖</span><span>Understanding Key Terms (CLTV, DTI,&nbsp;AVM)</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <dl class="terms" id="terms">
         <div><dt>CLTV</dt><dd>All the loans on your home added together, divided by what the home is worth. At 89%, a $900,000 home can carry up to $801,000 in total&nbsp;loans.</dd></div>
         <div><dt>DTI</dt><dd>Your monthly debt payments divided by your monthly income before taxes. Up to 55% means up to $5,500 in debt payments on $10,000 a&nbsp;month.</dd></div>
@@ -1211,7 +1212,7 @@
           <a class="btn btn-primary" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Apply for Loan&nbsp;Pre-Qual</a>
         </div>
       </div>
-      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></details>
+      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></details>
     </div>
   </section>
 
@@ -1284,7 +1285,7 @@
           </div>
         </div>
       </div>
-      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration only. The rates shown are example interest rates, not an APR or a rate quote. HELOC rates are usually variable and can change. Interest-only payments don't reduce what you owe, and payments go up when repayment begins. "Zero-down" means no cash down payment; the loan is secured by your home, and not repaying it could put your home at risk. Your rate, APR, fees and terms depend on credit, income, home value and lender&nbsp;approval.</span></details>
+      <details class="disc on-mist"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration only. The rates shown are example interest rates, not an APR or a rate quote. HELOC rates are usually variable and can change. Interest-only payments don't reduce what you owe, and payments go up when repayment begins. "Zero-down" means no cash down payment; the loan is secured by your home, and not repaying it could put your home at risk. Your rate, APR, fees and terms depend on credit, income, home value and lender&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1332,7 +1333,7 @@
           <div class="foot"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Zoning: Inglewood R-1 Setback&nbsp;Compliant</span><button type="button" class="btn btn-ghost" data-open="Inglewood 749 sq ft Case Study">Build Similar Unit&nbsp;→</button></div>
         </article>
       </div>
-      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Results from specific past projects, shown as examples. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></details>
+      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Results from specific past projects, shown as examples. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></details>
     </div>
   </section>
 
@@ -1380,7 +1381,7 @@
           <div class="perk">Max Family&nbsp;Utility</div>
         </div>
       </div>
-      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Prices are estimates for each standard plan at about $250/sq ft and can change with site work, utility upgrades, city fees and finishes. Pre-approved plan availability and plan-check time savings depend on each city's program. Floor plans shown are sample illustrations only, not construction drawings or approved plans. Final layouts, sizes and code compliance are set by a licensed designer and approved by your&nbsp;city.</span></details>
+      <details class="disc on-mist"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Prices are estimates for each standard plan at about $250/sq ft and can change with site work, utility upgrades, city fees and finishes. Pre-approved plan availability and plan-check time savings depend on each city's program. Floor plans shown are sample illustrations only, not construction drawings or approved plans. Final layouts, sizes and code compliance are set by a licensed designer and approved by your&nbsp;city.</span></details>
     </div>
   </section>
 
@@ -1398,7 +1399,7 @@
         <details><summary>How does in-house ADU lending work without refinancing my low first&nbsp;mortgage?</summary><p>If you have a 2.75%–3.5% mortgage from 2020–2021, you should never touch it. We arrange standalone second mortgages, standalone Home Equity Lines of Credit (HELOCs), or renovation loans that sit in 2nd lien position. This leaves your primary ultra-low interest rate intact while funding construction. Depending on the program, Fannie Mae and Freddie Mac guidelines can also let ADU rental income help you&nbsp;qualify.</p></details>
         <details><summary>Will building an ADU trigger a full reassessment of my primary&nbsp;home?</summary><p>No. Under California Proposition 13 rules, building an ADU triggers only a blended/supplemental assessment on the new construction value itself (typically ~1.25% of the $100k–$187k build cost). Your primary home's existing low tax assessment base remains&nbsp;protected.</p></details>
       </div>
-      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">General information about California ADU law, property tax and financing as of November 2026, not legal, tax or financial advice. Local rules vary, so confirm details with your city and a qualified&nbsp;professional.</span></details>
+      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">General information about California ADU law, property tax and financing as of November 2026, not legal, tax or financial advice. Local rules vary, so confirm details with your city and a qualified&nbsp;professional.</span></details>
     </div>
   </section>
 
