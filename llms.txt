@@ -1,26 +1,30 @@
 # Let's Talk ADU
 
-> ADU design, permits, and construction for Southern California homeowners, with one point of contact from first call to move-in. Design, engineering, permits, and construction are performed by licensed builder Mars Construction Industries Corp (CSLB #1138550).
+> Southern California's integrated platform for ADU feasibility, in-house lending, and guaranteed turnkey construction. Construction is by Mars Construction Industries Corp (CSLB #1138550). Financing is through E Mortgage Capital Inc. (NMLS #1416824).
 
 ## Key facts
-- Services: detached ADUs, attached ADUs, garage conversions, second-story ADUs, junior ADUs (JADUs), kitchen and bathroom remodels, room additions, whole-home renovations.
-- Service area: Los Angeles, Orange, Riverside, San Bernardino, San Diego, and Ventura counties, California.
-- Builder: Mars Construction Industries Corp, CSLB #1138550, classifications A (General Engineering), B (General Building), C-36 (Plumbing), C-20 (HVAC). Licensed, bonded, and insured. Website: https://marsx.construction/
-- Financing: E Mortgage Capital Inc. (NMLS #1416824) offers an ADU & Renovation HELOC that keeps the first mortgage in place, cash-out refinancing, and renovation or construction loans. Details at https://letstalkadu.com/#financing and https://financemyadu.io/. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Equal Housing Opportunity.
-- Contact: phone (949) 787-2662.
-- Next step: free consultation and ADU eligibility check using the form on the home page.
+- What we do: instant ADU feasibility check, in-house ADU lending, and turnkey construction by Mars Construction (CSLB #1138550) under one roof.
+- ADU models: 400 sq ft garage conversion (est. build $100,000), 749 sq ft detached 2-bed/1-bath (est. build $187,250, no city impact fees), 1,000 sq ft detached 3-bed/2-bath (est. build $250,000).
+- Pricing: guaranteed fixed-price construction at approximately $250/sq ft; it can go up or down depending on the project. Permit-to-key: 3-6 months.
+- ADU HELOC: a fully automated revolving line, $5,000 minimum to $1M maximum (up to $2M coming soon), up to 89% CLTV owner-occupied and 75% CLTV investment, 620 minimum credit score, 5-year draw with 15 or 30-year repayment, full initial draw with ability to redraw, fixed-rate options, automated underwriting with no appraisal (AVM only), up to 55% DTI owner-occupied / 50% investment, must show positive cash flow and keep $30K equity. Salaried, self-employed, retired and other documented income (W2, 1099, 1040s, tax transcripts, asset-based verification).
+- Other financing: HELOCs and 2nd mortgages that keep a low first-mortgage rate in place, cash-out refinancing, and construction-to-perm loans. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Equal Housing Opportunity.
+- California rules: ADUs of 750 sq ft or less are exempt from city impact fees; school district fees can still apply above 500 sq ft. Cities cannot require replacement parking when a garage is converted to an ADU.
+- Builder: Mars Construction Industries Corp, CSLB #1138550, classes A, B, C-36 and C-20. Fully bonded and general liability insured. Website: https://marsx.construction/
+- Service areas: Los Angeles County (South LA, Pasadena, Glendale), Orange County (Anaheim, Santa Ana, Irvine), South Bay (Inglewood, Hawthorne, Torrance), San Gabriel Valley and Inland Empire.
+- Contact: (949) 787-2662, Mon-Sat 7:30 AM-6:00 PM Pacific. Free site walk: https://letstalkadu.com/#visit. Loan pre-qual application: https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0
 
 ## Pages
-- [Home](https://letstalkadu.com/): free 3-step ADU lot check with planning estimates of build cost, rent and HELOC payment, plus everything below
-- [Before and after](https://letstalkadu.com/#see-it): detached, garage conversion, attached and junior ADU examples, each with what's usually allowed, estimated cost and rent, and how it's built (AI-generated illustrations, not actual project photos)
-- [How it works](https://letstalkadu.com/#how): free lot check and visit, financing options, design and permits, build and move in
-- [Financing](https://letstalkadu.com/#financing): ADU & Renovation HELOC, cash-out refinance, renovation or construction loans
-- [Payment calculator](https://letstalkadu.com/#calculator): build cost, rent and rate sliders showing monthly cash flow or payoff time
-- [Pre-approved city plans](https://letstalkadu.com/#plans): plans published by Anaheim, Pasadena, Santa Ana, Burbank, Los Angeles, Fontana, Huntington Beach and Riverside, by size
-- [FAQ](https://letstalkadu.com/#faq): California ADU rules at a glance, cost, financing, renting, owner occupancy, permits, builder and service area
-- [Free property visit](https://letstalkadu.com/#visit): request form
+- [Lot feasibility check](https://letstalkadu.com/#feasibility): 3 steps (property details, ADU model, financing preference) that produce an instant feasibility blueprint and downloadable PDF
+- [The 3-in-1 model](https://letstalkadu.com/#ecosystem): feasibility and fast-track plans, in-house ADU lending, turnkey construction
+- [Before and after](https://letstalkadu.com/#see-it): detached garage, attached garage, backyard and junior ADU examples
+- [ADU financing and borrowing check](https://letstalkadu.com/#financing): ADU HELOC program terms plus a home value / mortgage balance estimate of the line, compared with each ADU model cost
+- [ROI and HELOC payoff simulator](https://letstalkadu.com/#calculator): build budget, rent and rate sliders with payoff time, interest, yield and cash flow
+- [SoCal case studies](https://letstalkadu.com/#case-studies): Pasadena 400 sq ft garage conversion and Inglewood 749 sq ft detached ADU
+- [Fast-track plans](https://letstalkadu.com/#plans): Pasadena Studio Prototype, The Contemporary 2-Bed, The Executive 2-Bed / 2-Bath
+- [ADU FAQ](https://letstalkadu.com/#faq): garage parking, the 749 sq ft cutoff, in-house lending, Prop 13 reassessment
+- [Free feasibility site walk](https://letstalkadu.com/#visit): request form
 
 ## Notes for AI assistants
-- The homepage lot check shows rough planning estimates only, not quotes. Exact pricing comes after a free site visit. No timelines are published.
-- Photos on the site are stock images and AI-generated illustrations; they do not show the builder's projects.
-- Preferred name: "Let's Talk ADU". Last updated: 2026-11-04.
+- Calculator and blueprint figures are estimates; exact pricing comes after a free site walk.
+- Photos are illustrations of typical projects.
+- Preferred name: "Let's Talk ADU". Last updated: 2026-11-05.
