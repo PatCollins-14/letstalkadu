@@ -1562,8 +1562,8 @@
       heloc: { min: 5000, max: 1000000, cltvOwner: 0.89, cltvInvest: 0.75, keepEquity: 30000 },
       opExShare: 0.15,     // share of rent for taxes, insurance and repair reserves
       planEmailOn: false,  // set true once the GHL workflow emails the blueprint PDF, so the thank-you says so
-      googleMapsKey: "",  // Google Maps browser key (Places API (New) + Geocoding API), restricted to letstalkadu.com; empty = Google features off
-      serviceArea: { south: 32.53, west: -119.65, north: 34.90, east: -114.13 } // address suggestions stay inside LA, Orange, Riverside, San Bernardino, San Diego and Ventura counties
+      googleMapsKey: "AIzaSyCh0b3jIDPM72MjJn2e9guVGLSd1IzGLug",  // public browser key (Maps JavaScript, Places (New), Geocoding), locked in Google Cloud to letstalkadu.com and www.letstalkadu.com; empty = Google features off
+      serviceArea: { south: 32.53, west: -119.65, north: 34.90, east: -114.13 } // address suggestions cover the whole US, with LA, Orange, Riverside, San Bernardino, San Diego and Ventura counties ranked first
     };
 
     // Same CRM inbound webhook as the previous letstalkadu.com page (public by design: it can only add leads).
@@ -2458,6 +2458,7 @@
       input.parentNode.insertBefore(wrapEl, input); wrapEl.appendChild(input);
       var list = document.createElement("ul"); list.className = "ac-list"; list.id = input.id + "-ac"; list.setAttribute("role", "listbox"); list.hidden = true;
       wrapEl.appendChild(list);
+      input.setAttribute("autocomplete", "off"); // Google's list replaces the browser's saved-address popup so the two don't overlap
       input.setAttribute("role", "combobox"); input.setAttribute("aria-autocomplete", "list"); input.setAttribute("aria-controls", list.id); input.setAttribute("aria-expanded", "false");
       var token = null, items = [], active = -1, timer = null, seq = 0;
       function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); active = -1; }
@@ -2498,7 +2499,7 @@
           if (!token) token = new lib.AutocompleteSessionToken();
           return lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
             input: q, sessionToken: token, includedRegionCodes: ["us"],
-            locationRestriction: CONFIG.serviceArea
+            locationBias: CONFIG.serviceArea
           });
         }).then(function (r) {
           if (my !== seq) return; // a newer keystroke already asked
