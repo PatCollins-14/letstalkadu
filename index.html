@@ -2591,6 +2591,24 @@
       el.addEventListener("input", function () { var d = el.value.replace(/\D/g, ""); if (d.length === 10 && !/[()]/.test(el.value)) fmtPhone(el); });
     });
 
+    // Email check through our server (Xverify). Only "invalid" stops a form; every other answer, or no answer, lets the lead through.
+    var emailChecks = {};
+    function verifyEmail(email, btn) {
+      if (emailChecks[email]) return Promise.resolve(emailChecks[email]);
+      btn.textContent = "Checking your email...";
+      var ctl = "AbortController" in window ? new AbortController() : null;
+      var t = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+      return fetch("/api/verify-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email }), signal: ctl ? ctl.signal : undefined })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          clearTimeout(t);
+          var ev = { status: j.status || "unchecked", reason: j.reason || "", correction: j.correction || "" };
+          if (ev.status !== "unchecked" && ev.status !== "unknown") emailChecks[email] = ev;
+          return ev;
+        })
+        .catch(function () { clearTimeout(t); return { status: "unchecked", reason: "no_server", correction: "" }; });
+    }
+
     // ---------- Lead forms ----------
     function utm() {
       var out = {};
@@ -2646,7 +2664,12 @@
         var btn = form.querySelector('button[type="submit"]'), label = btn.innerHTML;
         btn.disabled = true; btn.textContent = "Sending...";
         var timer;
-        Promise.resolve(opts.prepare ? opts.prepare(btn, { name: full, address: payload.address || "" }) : {})
+        (emailEl ? verifyEmail(payload.email, btn) : Promise.resolve(null))
+          .then(function (ev) {
+            if (ev) { payload.email_status = ev.status; payload.email_status_reason = ev.reason; }
+            if (ev && ev.status === "invalid") { var stop = new Error("bad email"); stop.badEmail = ev; throw stop; }
+            return opts.prepare ? opts.prepare(btn, { name: full, address: payload.address || "" }) : {};
+          })
           .then(function (more) {
             Object.assign(payload, more);
             btn.textContent = "Sending...";
@@ -2655,8 +2678,16 @@
             return fetch(GHL_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined });
           })
           .then(function (res) { clearTimeout(timer); if (!res.ok) throw new Error(res.status); busy = false; btn.disabled = false; btn.innerHTML = label; finish(); })
-          .catch(function () {
+          .catch(function (err) {
             clearTimeout(timer); busy = false; btn.disabled = false; btn.innerHTML = label;
+            if (err && err.badEmail) {
+              emailEl.setAttribute("aria-invalid", "true");
+              $(emailEl.id + "-err").textContent = "This email can't receive mail. Please check it and try again.";
+              var tip = emailEl.parentNode.querySelector(".typo-tip");
+              if (tip && err.badEmail.correction) { tip.hidden = false; tip.textContent = "Did you mean " + err.badEmail.correction + "?"; tip.dataset.fix = err.badEmail.correction; }
+              emailEl.focus();
+              return;
+            }
             $(prefix + "-err").textContent = "That didn't go through. Please try again, or call (949) 787-2662.";
           });
       });
