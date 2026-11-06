@@ -791,13 +791,12 @@
       details.pcard .chev { display: block; width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: var(--sky); color: var(--navy); }
       .pcard ul { padding: 0 18px 18px; }
       /* Legal notes: a compact tap-to-read link */
-      details.disc { padding: 0; background: none; border: 0; text-align: center; margin-top: 18px; }
+      details.disc, details.disc.on-mist, details.disc.in-card { padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; text-align: center; margin-top: 18px; }
       details.disc > summary { position: static; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
       details.disc > summary:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
       details.disc .disc-s { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; display: inline; text-decoration: underline; text-decoration-color: rgba(95,107,119,.35); text-underline-offset: 3px; }
       details.disc .chev { display: block; }
-      details.disc .disc-t { margin-top: 8px; padding: 12px 14px; border-radius: 12px; background: var(--mist); text-align: left; }
-      details.disc.on-mist .disc-t { background: #fff; border: 1px solid var(--line); }
+      details.disc .disc-t, details.disc.on-mist .disc-t { margin-top: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: left; }
       details.disc.in-card { margin: 0 18px 14px; text-align: left; }
       /* Key terms: one tap away */
       details.terms-wrap { margin-top: 12px; }
