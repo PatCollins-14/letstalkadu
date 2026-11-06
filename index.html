@@ -725,6 +725,66 @@
     @media (max-width: 1440px) { .navcta .phone { min-width: 44px; min-height: 44px; justify-content: center; } }
     .ticks i { font-style: normal; }
     @media (max-width: 480px) { .ticks i { display: none; } }
+
+    /* ===== Phones (< 768px): lighter, shorter, one thing at a time ===== */
+    .wiz-prog, .cmp-tabs { display: none; }
+    .m-hide { font-style: normal; }
+    .hl, .way li p .hl { display: inline; margin: 0; font-size: inherit; font-weight: 700; color: var(--navy-deep); }
+    .acc-btn, .disc-tg { font: inherit; }
+    @media (max-width: 767px) {
+      /* Hero: everything up to the address box fits on a 390 x 844 screen */
+      .hero { padding: 14px 0 32px; }
+      .hero-c .intro { margin-bottom: 16px; }
+      .hero-c .intro .pill { display: none; }
+      .hero h1 { font-size: 30px; line-height: 1.12; margin: 2px 0 10px; }
+      .hero .lead { font-size: 15.5px; line-height: 1.5; margin: 0; }
+      .sen { display: block; }
+      .sen + .sen { margin-top: 6px; }
+      .proof { flex-wrap: nowrap; justify-content: flex-start; gap: 8px; margin: 14px -16px 0; padding: 2px 16px 6px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; font-size: 13px; }
+      .proof::-webkit-scrollbar { display: none; }
+      .proof span { flex: none; white-space: nowrap; gap: 6px; padding: 6px 11px 6px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); scroll-snap-align: start; box-shadow: 0 2px 6px rgba(24,45,92,.06); }
+      .proof span svg { width: 16px; height: 16px; }
+      .m-hide { display: none; }
+      /* Wizard: one progress line instead of three tabs, Next/Back always in reach */
+      .steps { display: none; }
+      .wiz-prog { display: block; padding: 12px 18px 10px; background: var(--mist); border-bottom: 1px solid var(--line); }
+      .wiz-prog p { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--navy-deep); }
+      .wiz-prog p b { color: var(--orange-ink); }
+      .wiz-bar { height: 6px; border-radius: 999px; background: #dde3ea; overflow: hidden; }
+      .wiz-bar i { display: block; height: 100%; width: 33.4%; border-radius: inherit; background: var(--orange); transition: width .3s ease; }
+      .checker { overflow: clip; }
+      .panel .row { position: sticky; bottom: 0; z-index: 6; margin: 18px -18px -20px !important; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); box-shadow: 0 -10px 22px rgba(24,45,92,.08); }
+      .panel .row .btn { flex: 1; min-height: 50px; }
+      .panel .row .back { min-height: 50px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 12px; color: var(--navy); background: #fff; }
+      body.wiz-in .mcta { transform: translateY(110%); }
+      .mcta { transition: transform .25s ease; }
+      /* The two ways to build: a switch instead of two long stacked cards */
+      .cmp-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 14px; border-radius: 14px; background: var(--mist); border: 1px solid var(--line); }
+      .cmp-tabs button { min-height: 46px; border: 0; border-radius: 10px; background: transparent; font-weight: 700; font-size: 15px; color: var(--muted); cursor: pointer; }
+      .cmp-tabs button[aria-selected=true] { background: #fff; color: var(--navy-deep); box-shadow: 0 2px 8px rgba(24,45,92,.12); }
+      .cmp-tabs button:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 1px; }
+      .compare .way.tab-off { display: none; }
+      .compare .way { padding: 22px 18px; }
+      /* Financing lists: accordions, first one open */
+      .pgrid { gap: 10px; }
+      .pcard { padding: 0; }
+      .pcard h3 { margin: 0; }
+      .acc-btn { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 56px; padding: 14px 18px; border: 0; background: none; text-align: left; font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--navy-deep); cursor: pointer; border-radius: 18px; }
+      .acc-btn:focus-visible { outline: 3px solid var(--navy-2); outline-offset: -3px; }
+      .acc-btn svg { flex: none; transition: transform .2s ease; color: var(--navy); }
+      .acc-btn[aria-expanded=true] svg { transform: rotate(180deg); }
+      .pcard ul { padding: 0 18px 18px; }
+      .pcard.acc-closed ul { display: none; }
+      /* Legal notes: one tap to read, still on the page */
+      .disc-tg { display: flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; min-height: 44px; margin: 18px auto 0; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 13.5px; font-weight: 600; cursor: pointer; }
+      .disc-tg.in-card { margin: 0 18px 14px; }
+      .disc-tg svg:last-child { transition: transform .2s ease; }
+      .disc-tg[aria-expanded=true] svg:last-child { transform: rotate(180deg); }
+      .disc-tg:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
+      .disc { margin-top: 8px; }
+      .disc.is-col { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .wiz-bar i, .mcta, .acc-btn svg, .disc-tg svg { transition: none; } }
     /* Small-screen fit: these come last so they win over earlier rules */
     .slider .ticks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -815,11 +875,11 @@
       <div class="intro">
         <span class="pill"><i></i> Feasibility • In-House Lending • Turnkey Builds by Mars Construction, CSLB&nbsp;#1138550</span>
         <h1 id="hero-title">Find Out What Your Lot Allows — <em>In 60&nbsp;Seconds.</em></h1>
-        <p class="lead">Skip the guessing game between disconnected architects, lenders, and contractors. Get your instant zoning check, impact fee waiver status, and in-house HELOC payment blueprint all in one&nbsp;place.</p>
-        <div class="proof">
-          <span><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>No Impact Fees Under 750&nbsp;sq&nbsp;ft</span>
-          <span><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Zero Replacement Parking&nbsp;Needed</span>
-          <span><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Mars Construction CSLB #1138550 (A, B, C-36,&nbsp;C-20)</span>
+        <p class="lead"><span class="sen">Skip the guessing game between disconnected architects, lenders, and&nbsp;contractors.</span> <span class="sen">Get your instant zoning check, impact fee waiver status, and in-house HELOC payment blueprint all in one&nbsp;place.</span></p>
+        <div class="proof" role="list" aria-label="Highlights" tabindex="0">
+          <span role="listitem"><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>No Impact Fees Under 750&nbsp;sq&nbsp;ft</span>
+          <span role="listitem"><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Zero Replacement Parking&nbsp;Needed</span>
+          <span role="listitem"><svg width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Mars Construction CSLB&nbsp;#1138550<i class="m-hide"> (A, B, C-36,&nbsp;C-20)</i></span>
         </div>
       </div>
 
@@ -829,6 +889,7 @@
           <div id="st2"><b>2</b><span>ADU&nbsp;Scope</span></div>
           <div id="st3"><b>3</b><span>Finance &amp;&nbsp;Blueprint</span></div>
         </div>
+        <div class="wiz-prog" aria-live="polite"><p id="wiz-t"><b>Step 1 of 3:</b> Property&nbsp;Details</p><div class="wiz-bar" aria-hidden="true"><i id="wiz-fill"></i></div></div>
 
         <!-- Step 1: address and property -->
         <div class="panel" id="p1">
@@ -965,10 +1026,14 @@
       <div class="head">
         <span class="eyebrow">The Integrated Advantage</span>
         <h2 id="eco-title">Why Let's Talk ADU Is&nbsp;Different</h2>
-        <p>The traditional ADU process is broken. Architects draw plans contractors can't build, and banks reject loan applications because they don't understand ADU income. We unified all three under one&nbsp;roof.</p>
+        <p><span class="sen">The traditional ADU process is&nbsp;broken.</span> <span class="sen">Architects draw plans contractors can't build, and banks reject loan applications because they don't understand ADU&nbsp;income.</span> <span class="sen">We unified all three under one&nbsp;roof.</span></p>
+      </div>
+      <div class="cmp-tabs" role="tablist" aria-label="Compare the two ways to build an ADU">
+        <button type="button" role="tab" id="cmp-t-old" aria-controls="cmp-old" aria-selected="false" tabindex="-1">The Old&nbsp;Way</button>
+        <button type="button" role="tab" id="cmp-t-new" aria-controls="cmp-new" aria-selected="true">Let's Talk&nbsp;ADU</button>
       </div>
       <div class="compare">
-        <div class="way old">
+        <div class="way old" id="cmp-old">
           <h3>The Fragmented Traditional&nbsp;Way</h3>
           <ol>
             <li><span class="n">1</span><div><strong>Step 1: Hire a Draftsman / Architect&nbsp;($8,000–$15,000)</strong><p>They design beautiful custom plans without knowing your budget, sewer depth, or contractor build&nbsp;costs.</p></div></li>
@@ -977,15 +1042,15 @@
           </ol>
           <div class="result">Average Result: $18,000 wasted on stalled blueprints &amp; 14+ months of&nbsp;stress.</div>
         </div>
-        <div class="way new">
+        <div class="way new" id="cmp-new">
           <span class="tag2">All-In-One Unified</span>
           <h3>The Let's Talk ADU Unified&nbsp;Model</h3>
           <ol class="uni">
             <li><span class="n">1</span><div><strong>Feasibility &amp; Fast-Track&nbsp;Plans</strong><p>Instant setback validation, pre-approved city plans, and physical sewer/electrical panel checks before spending on&nbsp;engineering.</p></div></li>
             <li><span class="n">2</span><div><strong>In-House ADU Lending&nbsp;Pre-Approval</strong><p>We structure HELOCs, 2nd mortgages, and construction-to-perm financing that can qualify you using cash out&nbsp;refinance.</p></div></li>
-            <li><span class="n">3</span><div><strong>Turnkey</strong><p>Guaranteed fixed-price construction at approximately $250/sq ft can go up and down depending on your situation. We pull city permits, trench utilities, pour foundations, and deliver turn-key&nbsp;finishes.</p></div></li>
+            <li><span class="n">3</span><div><strong>Turnkey</strong><p><span class="sen">Guaranteed fixed-price construction at approximately <strong class="hl">$250/sq&nbsp;ft</strong> can go up and down depending on your&nbsp;situation.</span> <span class="sen">We pull city permits, trench utilities, pour foundations, and deliver turn-key&nbsp;finishes.</span></p></div></li>
           </ol>
-          <div class="chips2"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Guaranteed Fixed-Price&nbsp;Contract</span><span><svg width="16" height="16"><use href="#i-clock"/></svg>Permit-to-Key: 3–6&nbsp;Months</span></div>
+          <div class="chips2"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Guaranteed Fixed-Price&nbsp;Contract</span><span><svg width="16" height="16"><use href="#i-clock"/></svg>Permit-to-Key: <strong>3–6&nbsp;Months</strong></span></div>
         </div>
       </div>
       <p class="disc"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>Fixed pricing and timelines are set in your written construction contract after the site walk and final plans. Cost can change with site conditions, utility upgrades and city requirements. Permit-to-key time depends on city plan check and inspections. Loans are subject to credit, income, property and underwriting&nbsp;approval.</span></p>
@@ -1045,25 +1110,25 @@
           <div class="pcard">
             <h3>Loan Amounts and&nbsp;Limits</h3>
             <ul>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>$5,000 minimum / $1M maximum line (up to $2 million coming&nbsp;soon)</span></li>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to 89% CLTV (owner-occupied) and 75% CLTV&nbsp;(investment)</span></li>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Minimum 620 credit&nbsp;score</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span><strong class="hl">$5,000</strong> minimum / <strong class="hl">$1M</strong> maximum line (up to $2 million coming&nbsp;soon)</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to <strong class="hl">89%&nbsp;CLTV</strong> (owner-occupied) and <strong class="hl">75%&nbsp;CLTV</strong>&nbsp;(investment)</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Minimum <strong class="hl">620</strong> credit&nbsp;score</span></li>
             </ul>
           </div>
           <div class="pcard">
             <h3>Program&nbsp;Features</h3>
             <ul>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>5-year draw with 15 or 30-year&nbsp;repayment</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span><strong class="hl">5-year</strong> draw with <strong class="hl">15&nbsp;or&nbsp;30-year</strong>&nbsp;repayment</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Full initial draw required with ability to&nbsp;redraw</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Fixed-rate loan options and revolving payment&nbsp;structure</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Automated underwriting with no appraisal (AVM&nbsp;only)</span></li>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Initial soft credit pull, so checking won't affect your credit&nbsp;score</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Initial <strong class="hl">soft credit pull</strong>, so checking won't affect your credit&nbsp;score</span></li>
             </ul>
           </div>
           <div class="pcard">
             <h3>DTI and&nbsp;Qualification</h3>
             <ul>
-              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to 55% DTI (owner-occupied) / 50%&nbsp;(investment)</span></li>
+              <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to <strong class="hl">55%&nbsp;DTI</strong> (owner-occupied) / <strong class="hl">50%</strong>&nbsp;(investment)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Must show positive cash flow and retain $30K&nbsp;equity</span></li>
             </ul>
           </div>
@@ -1194,12 +1259,12 @@
       <div class="head">
         <span class="eyebrow">Proof in Real&nbsp;Numbers</span>
         <h2 id="cases-title">Recent Southern California Case&nbsp;Studies</h2>
-        <p>Transparent, audited pro formas with zero marketing fluff. Real contractor pricing and actual market&nbsp;rents.</p>
+        <p><span class="sen">Transparent, audited pro formas with zero marketing&nbsp;fluff.</span> <span class="sen">Real contractor pricing and actual market&nbsp;rents.</span></p>
       </div>
       <div class="cases">
         <article class="case">
           <div class="top"><span class="zip">Pasadena (Zip 91105)</span><span class="win">4.9-Year Loan&nbsp;Payoff</span></div>
-          <h3>400 sq ft 2-Car Garage&nbsp;Conversion</h3>
+          <h3>400 sq ft 2‑Car Garage&nbsp;Conversion</h3>
           <p class="where">Near Huntington Hospital &amp; ArtCenter • High-yield Studio&nbsp;Suite</p>
           <dl>
             <dt>All-In Turnkey&nbsp;Cost:</dt><dd>$100,000</dd>
@@ -1519,7 +1584,13 @@
 
 
     // ---------- Wizard steps ----------
+    var WIZ = ["Property Details", "ADU Scope", "Finance & Blueprint"];
+    function wizProg(step) {
+      $("wiz-t").innerHTML = step > 3 ? "<b>Done:</b> Your blueprint is\u00a0ready" : "<b>Step " + step + " of 3:</b> " + WIZ[step - 1].replace(/ (\S+)$/, "\u00a0$1");
+      $("wiz-fill").style.width = (step > 3 ? 100 : step / 3 * 100) + "%";
+    }
     function show(step) {
+      wizProg(step);
       for (var i = 1; i <= 4; i++) $("p" + i).hidden = i !== step;
       for (var j = 1; j <= 3; j++) $("st" + j).className = j === step ? "on" : (j < step || step === 4) ? "done" : "";
       var c = $("feasibility");
@@ -1786,6 +1857,73 @@
       return f;
     }
     syncAll();
+
+    // ---------- Phone layout helpers (< 768px); desktop keeps the plain markup ----------
+    var mqPhone = window.matchMedia("(max-width: 767px)");
+    var CHEV = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    // 1. Old Way / Let's Talk ADU switch
+    var cmpTabs = Array.prototype.slice.call(document.querySelectorAll(".cmp-tabs [role=tab]")), cmpPanels = [$("cmp-old"), $("cmp-new")], cmpSel = 1;
+    function cmpSelect(i, focus) {
+      cmpSel = i;
+      cmpTabs.forEach(function (t, j) { t.setAttribute("aria-selected", j === i ? "true" : "false"); t.tabIndex = j === i ? 0 : -1; });
+      cmpPanels.forEach(function (p, j) { p.classList.toggle("tab-off", mqPhone.matches && j !== i); });
+      if (focus) cmpTabs[i].focus();
+    }
+    cmpTabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { cmpSelect(i); });
+      t.addEventListener("keydown", function (e) {
+        var k = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : e.key === "Home" ? -9 : e.key === "End" ? 9 : 0;
+        if (!k) return; e.preventDefault();
+        cmpSelect(k === -9 ? 0 : k === 9 ? 1 : (i + k + 2) % 2, true);
+      });
+    });
+    function cmpMode(on) {
+      cmpPanels.forEach(function (p, j) {
+        if (on) { p.setAttribute("role", "tabpanel"); p.setAttribute("aria-labelledby", cmpTabs[j].id); p.tabIndex = 0; }
+        else { p.removeAttribute("role"); p.removeAttribute("aria-labelledby"); p.removeAttribute("tabindex"); p.classList.remove("tab-off"); }
+      });
+      if (on) cmpSelect(cmpSel);
+    }
+    // 2. Financing lists as accordions (first open)
+    var accCards = Array.prototype.slice.call(document.querySelectorAll(".pgrid .pcard"));
+    accCards.forEach(function (c, i) {
+      var h = c.querySelector("h3"), ul = c.querySelector("ul"), btn = document.createElement("button");
+      ul.id = ul.id || "pc-list-" + i;
+      btn.type = "button"; btn.className = "acc-btn"; btn.setAttribute("aria-controls", ul.id);
+      btn.addEventListener("click", function () { var o = btn.getAttribute("aria-expanded") !== "true"; btn.setAttribute("aria-expanded", o ? "true" : "false"); c.classList.toggle("acc-closed", !o); });
+      c._acc = { h: h, btn: btn, html: h.innerHTML, on: false };
+    });
+    function accMode(on) {
+      accCards.forEach(function (c, i) {
+        var a = c._acc;
+        if (on && !a.on) { a.btn.innerHTML = "<span>" + a.html + "</span>" + CHEV; a.h.innerHTML = ""; a.h.appendChild(a.btn); a.btn.setAttribute("aria-expanded", i === 0 ? "true" : "false"); c.classList.toggle("acc-closed", i !== 0); a.on = true; }
+        else if (!on && a.on) { a.h.innerHTML = a.html; c.classList.remove("acc-closed"); a.on = false; }
+      });
+    }
+    // 3. Disclaimers behind one tap
+    var discs = Array.prototype.slice.call(document.querySelectorAll(".disc"));
+    discs.forEach(function (d, i) {
+      var b = document.createElement("button");
+      d.id = d.id || "disc-" + i;
+      b.type = "button"; b.className = "disc-tg" + (d.classList.contains("in-card") ? " in-card" : "");
+      b.setAttribute("aria-controls", d.id); b.setAttribute("aria-expanded", "false");
+      b.innerHTML = '<svg width="16" height="16" aria-hidden="true"><use href="#i-info"/></svg><span>Disclaimers &amp; licensing&nbsp;details</span>' + CHEV;
+      b.addEventListener("click", function () { var o = b.getAttribute("aria-expanded") !== "true"; b.setAttribute("aria-expanded", o ? "true" : "false"); d.classList.toggle("is-col", !o); });
+      d._tg = b;
+    });
+    function discMode(on) {
+      discs.forEach(function (d) {
+        if (on) { if (!d._tg.isConnected) d.parentNode.insertBefore(d._tg, d); d._tg.setAttribute("aria-expanded", "false"); d.classList.add("is-col"); }
+        else { if (d._tg.isConnected) d._tg.remove(); d.classList.remove("is-col"); }
+      });
+    }
+    function phoneMode() { var on = mqPhone.matches; cmpMode(on); accMode(on); discMode(on); }
+    phoneMode();
+    if (mqPhone.addEventListener) mqPhone.addEventListener("change", phoneMode); else mqPhone.addListener(phoneMode);
+    // 4. While the lot check is on screen, the bottom call bar steps aside for its Next button
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) { es.forEach(function (e) { document.body.classList.toggle("wiz-in", e.isIntersecting); }); }, { rootMargin: "-30% 0px -30% 0px" }).observe($("feasibility"));
+    }
 
     // ---------- Before / after slider ----------
     var BA = {
