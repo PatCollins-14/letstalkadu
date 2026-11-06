@@ -515,6 +515,23 @@
     .b-want-n.warn { color: #a8321f; }
     .disc { display: flex; gap: 10px; align-items: flex-start; max-width: 900px; margin: 22px auto 0; padding: 12px 16px; border-radius: 12px; background: var(--mist); color: var(--muted); font-size: 13px; line-height: 1.55; text-wrap: pretty; }
     .disc svg { flex: none; margin-top: 1px; color: var(--muted); }
+    /* Disclaimers, financing lists and key terms are <details>; on desktop they stay open and read as before */
+    details.disc, details.pcard, details.terms-wrap { border-radius: 0; }
+    details.disc { display: block; position: relative; padding-left: 44px; border: 0; border-radius: 12px; }
+    details.disc.on-mist { border: 1px solid var(--line); }
+    details.pcard { border: 1px solid var(--line); border-radius: 18px; }
+    details.terms-wrap { background: none; border: 0; }
+    details.disc > summary, details.pcard > summary, details.terms-wrap > summary { display: block; padding: 0; gap: 0; font: inherit; color: inherit; }
+    details.disc > summary::after, details.pcard > summary::after, details.terms-wrap > summary::after { content: none; display: none; }
+    details.disc > summary { position: absolute; left: 16px; top: 13px; list-style: none; pointer-events: none; }
+    details.disc > summary::-webkit-details-marker, details.pcard > summary::-webkit-details-marker, details.terms-wrap > summary::-webkit-details-marker { display: none; }
+    details.disc .chev, details.pcard .chev, details.terms-wrap > summary { display: none; }
+    details.disc .disc-s { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    details.disc .disc-t { display: block; }
+    details.pcard > summary { list-style: none; cursor: default; }
+    details.pcard > summary h3 { margin-bottom: 12px; }
+    details > summary .chev { flex: none; transition: transform .2s ease; }
+    details[open] > summary .chev { transform: rotate(180deg); }
     .disc.on-mist { background: #fff; border: 1px solid var(--line); }
     .disc.in-card { margin: 0 26px 18px; max-width: none; }
     .fine.consent { line-height: 1.5; }
@@ -730,7 +747,6 @@
     .wiz-prog, .cmp-tabs { display: none; }
     .m-hide { font-style: normal; }
     .hl, .way li p .hl { display: inline; margin: 0; font-size: inherit; font-weight: 700; color: var(--navy-deep); }
-    .acc-btn, .disc-tg { font: inherit; }
     @media (max-width: 767px) {
       /* Hero: everything up to the address box fits on a 390 x 844 screen */
       .hero { padding: 14px 0 32px; }
@@ -767,29 +783,27 @@
       .compare .way { padding: 22px 18px; }
       /* Financing lists: accordions, first one open */
       .pgrid { gap: 10px; }
-      .pcard { padding: 0; }
-      .pcard h3 { margin: 0; }
-      .acc-btn { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 56px; padding: 14px 18px; border: 0; background: none; text-align: left; font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--navy-deep); cursor: pointer; border-radius: 18px; }
-      .acc-btn:focus-visible { outline: 3px solid var(--navy-2); outline-offset: -3px; }
-      .acc-btn svg { flex: none; transition: transform .2s ease; color: var(--navy); }
-      .acc-btn[aria-expanded=true] svg { transform: rotate(180deg); }
+      details.pcard { padding: 0; border: 1px solid var(--line); box-shadow: none; }
+      details.pcard > summary { cursor: pointer; border-radius: 18px; }
+      details.pcard > summary h3 { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; margin: 0; padding: 14px 18px; font-size: 16.5px; }
+      details.pcard > summary:focus-visible { outline: 3px solid var(--navy-2); outline-offset: -3px; }
+      details.pcard .chev { display: block; width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: var(--sky); color: var(--navy); }
       .pcard ul { padding: 0 18px 18px; }
-      .pcard.acc-closed ul { display: none; }
-      /* Legal notes: one tap to read, still on the page */
-      .disc-tg { display: flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; min-height: 44px; margin: 18px auto 0; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 13.5px; font-weight: 600; cursor: pointer; }
-      .disc-tg.in-card { margin: 0 18px 14px; }
-      .disc-tg svg:last-child { transition: transform .2s ease; }
-      .disc-tg[aria-expanded=true] svg:last-child { transform: rotate(180deg); }
-      .disc-tg:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
-      .disc { margin-top: 8px; }
-      .disc.is-col { display: none; }
+      /* Legal notes: a compact tap-to-read link */
+      details.disc { padding: 0; background: none; border: 0; text-align: center; margin-top: 18px; }
+      details.disc > summary { position: static; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
+      details.disc > summary:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
+      details.disc .disc-s { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; display: inline; text-decoration: underline; text-decoration-color: rgba(95,107,119,.35); text-underline-offset: 3px; }
+      details.disc .chev { display: block; }
+      details.disc .disc-t { margin-top: 8px; padding: 12px 14px; border-radius: 12px; background: var(--mist); text-align: left; }
+      details.disc.on-mist .disc-t { background: #fff; border: 1px solid var(--line); }
+      details.disc.in-card { margin: 0 18px 14px; text-align: left; }
       /* Key terms: one tap away */
-      .terms-tg { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; margin: 12px 0 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--mist); color: var(--navy-deep); font-weight: 700; font-size: 14.5px; text-align: left; cursor: pointer; }
-      .terms-tg span { flex: 1; }
-      .terms-tg svg:last-child { transition: transform .2s ease; color: var(--navy); }
-      .terms-tg[aria-expanded=true] svg:last-child { transform: rotate(180deg); }
-      .terms-tg:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
-      .terms.is-col { display: none; }
+      details.terms-wrap { margin-top: 12px; }
+      details.terms-wrap > summary { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--mist); color: var(--navy-deep); font-weight: 700; font-size: 14.5px; list-style: none; cursor: pointer; }
+      details.terms-wrap > summary span { flex: 1; }
+      details.terms-wrap > summary .chev { display: block; color: var(--navy); }
+      details.terms-wrap > summary:focus-visible { outline: 3px solid var(--navy-2); outline-offset: 2px; }
       .terms { margin-top: 8px; }
       /* Header: logo, call icon, Check My Lot, menu; one row under 60px */
       nav.main .wrap { height: 58px; gap: 8px; }
@@ -801,14 +815,8 @@
       .navcta .btn { min-height: 44px; padding: 10px 14px; white-space: nowrap; font-size: 15px; }
       .menu-btn { width: 44px; height: 44px; }
       .menu-panel { top: 100%; }
-      /* Accordion and legal toggles: compact, bordered, clear state */
-      .pcard { border: 1px solid var(--line); box-shadow: none; }
-      .acc-btn { min-height: 52px; font-size: 16.5px; }
-      .acc-btn svg { width: 20px; height: 20px; padding: 2px; border-radius: 50%; background: var(--sky); }
-      .disc-tg { font-size: 13px; color: var(--muted); padding: 6px 14px; }
-      .disc-tg span { text-decoration: underline; text-decoration-color: rgba(95,107,119,.35); text-underline-offset: 3px; }
     }
-    @media (prefers-reduced-motion: reduce) { .wiz-bar i, .mcta, .acc-btn svg, .disc-tg svg, .terms-tg svg { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .wiz-bar i, .mcta, details > summary .chev { transition: none; } }
     /* Small-screen fit: these come last so they win over earlier rules */
     .slider .ticks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1033,7 +1041,7 @@
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Tax Shelter:</strong> Eligible for Cost Segregation &amp; HELOC interest&nbsp;write-offs.</span></li>
           </ul>
 
-          <p class="disc in-card"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the free site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></p>
+          <details class="disc in-card" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the free site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></details>
           <div class="bp-next">
             <div><b>Next Step: Free On-Site Utility &amp; Sewer&nbsp;Scan</b><span>We verify your main electrical panel capacity (200A) and sewer invert&nbsp;depth.</span></div>
             <button type="button" class="btn btn-primary" data-open="Feasibility Form Blueprint">Schedule Free Feasibility Site&nbsp;Walk</button>
@@ -1077,7 +1085,7 @@
           <div class="chips2"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Guaranteed Fixed-Price&nbsp;Contract</span><span><svg width="16" height="16"><use href="#i-clock"/></svg>Permit-to-Key: <strong>3–6&nbsp;Months</strong></span></div>
         </div>
       </div>
-      <p class="disc"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>Fixed pricing and timelines are set in your written construction contract after the site walk and final plans. Cost can change with site conditions, utility upgrades and city requirements. Permit-to-key time depends on city plan check and inspections. Loans are subject to credit, income, property and underwriting&nbsp;approval.</span></p>
+      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Fixed pricing and timelines are set in your written construction contract after the site walk and final plans. Cost can change with site conditions, utility upgrades and city requirements. Permit-to-key time depends on city plan check and inspections. Loans are subject to credit, income, property and underwriting&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1118,7 +1126,7 @@
           </div>
         </div>
       </div>
-      <p class="disc on-mist"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>For illustration purposes only. The costs, rents, rates and payments shown for each example are not actual numbers, quotes or loan offers. Your numbers depend on your property, your build contract and loan&nbsp;approval.</span></p>
+      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration purposes only. The costs, rents, rates and payments shown for each example are not actual numbers, quotes or loan offers. Your numbers depend on your property, your build contract and loan&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1131,16 +1139,16 @@
         <p>Financing is a fully automated revolving line designed for speed, flexibility, and higher leverage&nbsp;options.</p>
       </div>
       <div class="pgrid">
-          <div class="pcard">
-            <h3>Loan Amounts and&nbsp;Limits</h3>
+          <details class="pcard" open>
+            <summary><h3>Loan Amounts and&nbsp;Limits<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span><strong class="hl">$5,000</strong> minimum / <strong class="hl">$1M</strong> maximum line (up to $2 million coming&nbsp;soon)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to <strong class="hl">89%&nbsp;CLTV</strong> (owner-occupied) and <strong class="hl">75%&nbsp;CLTV</strong>&nbsp;(investment)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Minimum <strong class="hl">620</strong> credit&nbsp;score</span></li>
             </ul>
-          </div>
-          <div class="pcard">
-            <h3>Program&nbsp;Features</h3>
+          </details>
+          <details class="pcard" open>
+            <summary><h3>Program&nbsp;Features<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span><strong class="hl">5-year</strong> draw with <strong class="hl">15&nbsp;or&nbsp;30-year</strong>&nbsp;repayment</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Full initial draw required with ability to&nbsp;redraw</span></li>
@@ -1148,21 +1156,21 @@
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Automated underwriting with no appraisal (AVM&nbsp;only)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Initial <strong class="hl">soft credit pull</strong>, so checking won't affect your credit&nbsp;score</span></li>
             </ul>
-          </div>
-          <div class="pcard">
-            <h3>DTI and&nbsp;Qualification</h3>
+          </details>
+          <details class="pcard" open>
+            <summary><h3>DTI and&nbsp;Qualification<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Up to <strong class="hl">55%&nbsp;DTI</strong> (owner-occupied) / <strong class="hl">50%</strong>&nbsp;(investment)</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Must show positive cash flow and retain $30K&nbsp;equity</span></li>
             </ul>
-          </div>
-          <div class="pcard">
-            <h3>Income Types&nbsp;Allowed</h3>
+          </details>
+          <details class="pcard" open>
+            <summary><h3>Income Types&nbsp;Allowed<svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h3></summary>
             <ul>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Salaried, self-employed, retired, and other documented&nbsp;income</span></li>
               <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Accepts W2, 1099, 1040s, tax transcripts, and asset-based&nbsp;verification</span></li>
             </ul>
-          </div>
+          </details>
       </div>
       <div class="adv">
         <h3 class="adv-k">Key&nbsp;Advantages</h3>
@@ -1173,11 +1181,14 @@
           <li><svg width="18" height="18" aria-hidden="true"><use href="#i-check"/></svg><span>Multiple ways to access and repay&nbsp;funds</span></li>
         </ul>
       </div>
+      <details class="terms-wrap" open>
+        <summary><svg width="20" height="20" aria-hidden="true"><use href="#i-book"/></svg><span>Understanding Key Terms (CLTV, DTI,&nbsp;AVM)</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <dl class="terms" id="terms">
         <div><dt>CLTV</dt><dd>All the loans on your home added together, divided by what the home is worth. At 89%, a $900,000 home can carry up to $801,000 in total&nbsp;loans.</dd></div>
         <div><dt>DTI</dt><dd>Your monthly debt payments divided by your monthly income before taxes. Up to 55% means up to $5,500 in debt payments on $10,000 a&nbsp;month.</dd></div>
         <div><dt>AVM</dt><dd>An automated home value from public records and recent sales, so no appraiser has to visit your&nbsp;home.</dd></div>
       </dl>
+      </details>
 
       <div class="borrow" id="borrow">
         <div class="borrow-in">
@@ -1200,7 +1211,7 @@
           <a class="btn btn-primary" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Apply for Loan&nbsp;Pre-Qual</a>
         </div>
       </div>
-      <p class="disc"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></p>
+      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></details>
     </div>
   </section>
 
@@ -1273,7 +1284,7 @@
           </div>
         </div>
       </div>
-      <p class="disc on-mist"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>For illustration only. The rates shown are example interest rates, not an APR or a rate quote. HELOC rates are usually variable and can change. Interest-only payments don't reduce what you owe, and payments go up when repayment begins. "Zero-down" means no cash down payment; the loan is secured by your home, and not repaying it could put your home at risk. Your rate, APR, fees and terms depend on credit, income, home value and lender&nbsp;approval.</span></p>
+      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">For illustration only. The rates shown are example interest rates, not an APR or a rate quote. HELOC rates are usually variable and can change. Interest-only payments don't reduce what you owe, and payments go up when repayment begins. "Zero-down" means no cash down payment; the loan is secured by your home, and not repaying it could put your home at risk. Your rate, APR, fees and terms depend on credit, income, home value and lender&nbsp;approval.</span></details>
     </div>
   </section>
 
@@ -1321,7 +1332,7 @@
           <div class="foot"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Zoning: Inglewood R-1 Setback&nbsp;Compliant</span><button type="button" class="btn btn-ghost" data-open="Inglewood 749 sq ft Case Study">Build Similar Unit&nbsp;→</button></div>
         </article>
       </div>
-      <p class="disc"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>Results from specific past projects, shown as examples. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></p>
+      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Results from specific past projects, shown as examples. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></details>
     </div>
   </section>
 
@@ -1369,7 +1380,7 @@
           <div class="perk">Max Family&nbsp;Utility</div>
         </div>
       </div>
-      <p class="disc on-mist"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>Prices are estimates for each standard plan at about $250/sq ft and can change with site work, utility upgrades, city fees and finishes. Pre-approved plan availability and plan-check time savings depend on each city's program. Floor plans shown are sample illustrations only, not construction drawings or approved plans. Final layouts, sizes and code compliance are set by a licensed designer and approved by your&nbsp;city.</span></p>
+      <details class="disc on-mist" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Prices are estimates for each standard plan at about $250/sq ft and can change with site work, utility upgrades, city fees and finishes. Pre-approved plan availability and plan-check time savings depend on each city's program. Floor plans shown are sample illustrations only, not construction drawings or approved plans. Final layouts, sizes and code compliance are set by a licensed designer and approved by your&nbsp;city.</span></details>
     </div>
   </section>
 
@@ -1387,7 +1398,7 @@
         <details><summary>How does in-house ADU lending work without refinancing my low first&nbsp;mortgage?</summary><p>If you have a 2.75%–3.5% mortgage from 2020–2021, you should never touch it. We arrange standalone second mortgages, standalone Home Equity Lines of Credit (HELOCs), or renovation loans that sit in 2nd lien position. This leaves your primary ultra-low interest rate intact while funding construction. Depending on the program, Fannie Mae and Freddie Mac guidelines can also let ADU rental income help you&nbsp;qualify.</p></details>
         <details><summary>Will building an ADU trigger a full reassessment of my primary&nbsp;home?</summary><p>No. Under California Proposition 13 rules, building an ADU triggers only a blended/supplemental assessment on the new construction value itself (typically ~1.25% of the $100k–$187k build cost). Your primary home's existing low tax assessment base remains&nbsp;protected.</p></details>
       </div>
-      <p class="disc"><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>General information about California ADU law, property tax and financing as of November 2026, not legal, tax or financial advice. Local rules vary, so confirm details with your city and a qualified&nbsp;professional.</span></p>
+      <details class="disc" open><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">General information about California ADU law, property tax and financing as of November 2026, not legal, tax or financial advice. Local rules vary, so confirm details with your city and a qualified&nbsp;professional.</span></details>
     </div>
   </section>
 
@@ -1908,48 +1919,21 @@
       });
       if (on) cmpSelect(cmpSel);
     }
-    // 2. Financing lists as accordions (first open)
-    var accCards = Array.prototype.slice.call(document.querySelectorAll(".pgrid .pcard"));
-    accCards.forEach(function (c, i) {
-      var h = c.querySelector("h3"), ul = c.querySelector("ul"), btn = document.createElement("button");
-      ul.id = ul.id || "pc-list-" + i;
-      btn.type = "button"; btn.className = "acc-btn"; btn.setAttribute("aria-controls", ul.id);
-      btn.addEventListener("click", function () { var o = btn.getAttribute("aria-expanded") !== "true"; btn.setAttribute("aria-expanded", o ? "true" : "false"); c.classList.toggle("acc-closed", !o); });
-      c._acc = { h: h, btn: btn, html: h.innerHTML, on: false };
-    });
-    function accMode(on) {
-      accCards.forEach(function (c, i) {
-        var a = c._acc;
-        if (on && !a.on) { a.btn.innerHTML = "<span>" + a.html + "</span>" + CHEV; a.h.innerHTML = ""; a.h.appendChild(a.btn); a.btn.setAttribute("aria-expanded", i === 0 ? "true" : "false"); c.classList.toggle("acc-closed", i !== 0); a.on = true; }
-        else if (!on && a.on) { a.h.innerHTML = a.html; c.classList.remove("acc-closed"); a.on = false; }
+    // 2. Financing lists, disclaimers and key terms are <details> in the HTML.
+    //    Phones: only "Loan Amounts and Limits" starts open. Desktop: all open, summaries don't toggle.
+    var folds = Array.prototype.slice.call(document.querySelectorAll("details.pcard, details.disc, details.terms-wrap"));
+    var firstCard = document.querySelector("details.pcard");
+    function foldMode(on) {
+      folds.forEach(function (d) {
+        d.open = on ? d === firstCard : true;
+        var sm = d.querySelector("summary"); if (sm) sm.tabIndex = on ? 0 : -1;
       });
     }
-    // 3. Disclaimers behind one tap
-    var discs = Array.prototype.slice.call(document.querySelectorAll(".disc"));
-    discs.forEach(function (d, i) {
-      var b = document.createElement("button");
-      d.id = d.id || "disc-" + i;
-      b.type = "button"; b.className = "disc-tg" + (d.classList.contains("in-card") ? " in-card" : "");
-      b.setAttribute("aria-controls", d.id); b.setAttribute("aria-expanded", "false");
-      b.innerHTML = '<svg width="16" height="16" aria-hidden="true"><use href="#i-info"/></svg><span>Disclaimers &amp; licensing&nbsp;details</span>' + CHEV;
-      b.addEventListener("click", function () { var o = b.getAttribute("aria-expanded") !== "true"; b.setAttribute("aria-expanded", o ? "true" : "false"); d.classList.toggle("is-col", !o); });
-      d._tg = b;
+    document.addEventListener("click", function (e) {
+      var sm = e.target.closest && e.target.closest("details.pcard > summary, details.disc > summary, details.terms-wrap > summary");
+      if (sm && !mqPhone.matches) e.preventDefault();
     });
-    function discMode(on) {
-      discs.forEach(function (d) {
-        if (on) { if (!d._tg.isConnected) d.parentNode.insertBefore(d._tg, d); d._tg.setAttribute("aria-expanded", "false"); d.classList.add("is-col"); }
-        else { if (d._tg.isConnected) d._tg.remove(); d.classList.remove("is-col"); }
-      });
-    }
-    var terms = $("terms"), termsTg = document.createElement("button");
-    termsTg.type = "button"; termsTg.className = "terms-tg"; termsTg.setAttribute("aria-controls", "terms"); termsTg.setAttribute("aria-expanded", "false");
-    termsTg.innerHTML = '<svg width="20" height="20" aria-hidden="true"><use href="#i-book"/></svg><span>Understanding Key Terms (CLTV, DTI,&nbsp;AVM)</span>' + CHEV;
-    termsTg.addEventListener("click", function () { var o = termsTg.getAttribute("aria-expanded") !== "true"; termsTg.setAttribute("aria-expanded", o ? "true" : "false"); terms.classList.toggle("is-col", !o); });
-    function termsMode(on) {
-      if (on) { if (!termsTg.isConnected) terms.parentNode.insertBefore(termsTg, terms); termsTg.setAttribute("aria-expanded", "false"); terms.classList.add("is-col"); }
-      else { if (termsTg.isConnected) termsTg.remove(); terms.classList.remove("is-col"); }
-    }
-    function phoneMode() { var on = mqPhone.matches; cmpMode(on); accMode(on); discMode(on); termsMode(on); }
+    function phoneMode() { var on = mqPhone.matches; cmpMode(on); foldMode(on); }
     phoneMode();
     if (mqPhone.addEventListener) mqPhone.addEventListener("change", phoneMode); else mqPhone.addListener(phoneMode);
     // 4. While the lot check is on screen, the bottom call bar steps aside for its Next button
