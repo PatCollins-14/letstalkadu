@@ -4,9 +4,11 @@
  *
  *   buildBlueprintPdf(jsPDF, {
  *     name, address,                 // from the form
- *     ptype, pay,                    // "Single-Family Home" | "Duplex / Multi-Family";  "HELOC / 2nd Lien" | "Cash on Hand" | "Construction-to-Perm"
+ *     ptype, pay,                    // "Single-Family Home" | "Duplex" | "Triplex" | "Fourplex";  "HELOC / 2nd Lien" | "Cash on Hand" | "Construction-to-Perm"
  *     scope,                         // the page's SCOPES entry or CUSTOM: { title, short, sqft, cost, rent, rentRange, equity, appraisal, impactExempt, custom }
- *     config,                        // the page's CONFIG: { helocRate, drawYears, repayYears, opExShare }
+ *     config,                        // the page's CONFIG: { helocRate, drawYears, repayYears, opex: { vacancy, tax, insurance, repairs, reserve } }
+ *     parcel,                        // optional, from /api/parcel: { apn, neighborhood, legal, jurisdiction, cityOfLA, zoning, zoningDesc, use, units, beds, baths, yearBuilt, buildingSqft, lotSqft }
+ *     place,                         // optional, from Google: { city, neighborhood }
  *     logo,                          // optional { url: "data:image/png;base64,...", ratio: w / h }
  *     date                           // optional Date
  *   }) -> jsPDF document (exactly 5 pages, or it throws)
@@ -242,18 +244,33 @@
     var sqft = d.sqft, cost = d.cost, rent = d.rent;
     var rateP = cfg.helocRate || 8, rate = rateP / 100, r = rate / 12;
     var drawY = cfg.drawYears || 5, repayY = cfg.repayYears || 30, span = drawY + repayY;
-    var opShare = cfg.opExShare == null ? 0.15 : cfg.opExShare;
+    // Operating costs, itemized the same way as the page (index.html opexFor)
+    var OX = Object.assign({ vacancy: 0.04, tax: 0.0125, insurance: 0.004, repairs: 0.0065, reserve: 0.005 }, cfg.opex || {});
+    var opexFor = function (rnt, cst) {
+      var m = function (rate) { return Math.round(cst * rate / 12); };
+      var o = { vacancy: Math.round(rnt * OX.vacancy), tax: m(OX.tax), insurance: m(OX.insurance), repairs: m(OX.repairs), reserve: m(OX.reserve) };
+      o.total = o.vacancy + o.tax + o.insurance + o.repairs + o.reserve; return o;
+    };
     var pmt = function (P) { return P * r / (1 - Math.pow(1 + r, -12 * repayY)); };
-    var io = cost * r, amort = pmt(cost), opex = rent * opShare;
+    var ox = opexFor(rent, cost), io = cost * r, amort = pmt(cost), opex = ox.total;
     var cf1 = rent - opex - io, cf2 = rent - opex - amort;
     var garage = /garage/i.test(d.title || "");
-    var school = sqft > 500 ? Math.round(sqft * 5.2 / 10) * 10 : 0;
+    var pc = input.parcel && input.parcel.apn ? input.parcel : null, place = input.place || {};
+    var cityLA = !!(pc && pc.cityOfLA);
+    var SCHOOL_RATE = 5.38;  // per sq ft over 500 sq ft (LAUSD rate; most SoCal districts are close)
+    var school = sqft > 500 ? Math.round(sqft * SCHOOL_RATE / 10) * 10 : 0;
     var permits = 10000, utilities = 8000, contingency = cost * 0.05;
     var cushion = cost + school + permits + utilities + contingency;
     var cushionCF = rent - opex - cushion * r;
-    var vRent = rent * 0.9, vCost = cost * 1.1, v1 = vRent * (1 - opShare) - vCost * r, v2 = vRent * (1 - opShare) - pmt(vCost);
+    var vRent = rent * 0.9, vCost = cost * 1.1, vOp = opexFor(vRent, vCost).total, v1 = vRent - vOp - vCost * r, v2 = vRent - vOp - pmt(vCost);
     var appraisal = d.appraisal, equity = d.equity, perSq = appraisal / sqft, fiveYr = cf1 * 12 * drawY;
-    var duplex = /duplex|multi/i.test(input.ptype || "");
+    var UNITS = { duplex: 2, triplex: 3, fourplex: 4 };
+    var pkind = (String(input.ptype || "").match(/duplex|triplex|fourplex/i) || [""])[0].toLowerCase();
+    if (!pkind && /multi/i.test(input.ptype || "")) pkind = "duplex";
+    var duplex = !!pkind, unitsNow = pkind ? UNITS[pkind] : 1;
+    var home = pkind ? "the " + pkind : "your home", homeCap = pkind ? "The " + pkind : "Your home";
+    var cityName = pc && pc.jurisdiction ? (/^City/.test(pc.jurisdiction) ? "the " + pc.jurisdiction : "Los Angeles County") : place.city ? "the City of " + place.city : "your city";
+    var hood = (pc && pc.neighborhood) || place.neighborhood || "";
     var pay = input.pay || "HELOC / 2nd Lien";
     var date = input.date || new Date();
     var today = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -266,6 +283,9 @@
     var plan = PLANS[planKey];
     var planExact = !d.custom && plan.sqft === sqft;
     var layout = garage ? "Studio, 1 bath" : sqft >= 900 ? "3 bed / 2 bath" : sqft >= 600 ? "2 bed / 1 bath" : sqft >= 450 ? "1 bed / 1 bath" : "Studio, 1 bath";
+    var layoutShort = garage ? "studio" : sqft >= 900 ? "3-bed / 2-bath" : sqft >= 600 ? "2-bed / 1-bath" : sqft >= 450 ? "1-bed / 1-bath" : "studio";
+    var newUnit = sqft.toLocaleString("en-US") + " sq ft " + (garage ? "garage conversion ADU" : "detached " + layoutShort + " ADU");
+    var useLow = pc && pc.use ? pc.use.charAt(0).toLowerCase() + pc.use.slice(1) : "";
 
     // ================= PAGE 1: PROJECT SNAPSHOT & WEALTH DASHBOARD =================
     fill(C.navy); doc.rect(0, 0, W, 104, "F");
@@ -273,9 +293,11 @@
       try { doc.addImage(input.logo.url, "PNG", M, 24, 56 * (input.logo.ratio || 1.5), 56, undefined, "FAST"); } catch (e) { /* the logo is optional */ }
     }
     font("bold", 19, C.white); doc.text("ADU Feasibility & Financing Blueprint", W - M, 50, { align: "right" });
-    font("normal", 10, C.paleNavy); doc.text("Prepared " + today + " · letstalkadu.com", W - M, 70, { align: "right" });
+    var who = plain(input.name || "").trim();
+    var prep = (who ? "Prepared for " + who + " · " : "Prepared ") + today + " · letstalkadu.com";
+    font("normal", 10, C.paleNavy); fitSize(prep, CW - 200, 10, 7.5); doc.text(prep, W - M, 70, { align: "right" });
     y = 132;
-    var badge = duplex ? "DUPLEX / MULTI-FAMILY · UP TO 2 DETACHED ADUS" : "SINGLE-FAMILY HOME · ADU ALLOWED BY STATE LAW";
+    var badge = duplex ? pkind.toUpperCase() + " LOT · UP TO " + unitsNow + " DETACHED ADUS" : "SINGLE-FAMILY HOME · ADU + JUNIOR ADU ALLOWED";
     font("bold", 8.5); var bwid = doc.getTextWidth(badge) + 24;
     fill(C.green); doc.roundedRect(M, y - 12, bwid, 18, 9, 9, "F");
     font("bold", 8.5, C.white); doc.text(badge, M + bwid / 2, y, { align: "center" });
@@ -285,9 +307,9 @@
     if (doc.getTextWidth(addr) > CW) { var al = doc.splitTextToSize(addr, CW).slice(0, 2); doc.text(al, M, y, { lineHeightFactor: 1.15 }); y += (al.length - 1) * as * 1.15; }
     else doc.text(addr, M, y);
     y += 16;
-    var who = plain(input.name || "").trim();
-    var subline = (who ? "Prepared for " + who + " · " : "") + title + " · Financing pick: " + plain(pay);
-    font("normal", 10, C.muted); fitSize(subline, CW, 10, 7.5); doc.text(doc.splitTextToSize(subline, CW)[0], M, y); y += 8;
+    var subline = [pc ? "APN " + pc.apn : "", hood, pc && pc.use ? "Existing " + useLow : duplex ? "Existing " + pkind : "Single-family home", "New " + newUnit].filter(Boolean).join(" · ");
+    font("normal", 10, C.muted); fitSize(subline, CW, 10, 8.5);
+    var sl = doc.splitTextToSize(plain(subline), CW).slice(0, 2); doc.text(sl, M, y, { lineHeightFactor: 1.3 }); y += (sl.length - 1) * 12 + 8;
     para("What a " + short + " could cost, what it could earn each month and how much equity it could create on day one. Every number is an estimate to help you plan. It is not a quote, an appraisal or a loan offer.", 10, C.ink);
 
     heading(1, "Your wealth dashboard");
@@ -296,19 +318,19 @@
       card(M, cw, ch, C.mist, "Total build cost", money(cost), sqft.toLocaleString("en-US") + " sq ft at $250 per sq ft. Full budget with fees and a cushion is on page 3.", C.deep, 24);
       card(M + cw + gap, cw, ch, C.greenSoft, "Projected monthly rent", money(rent) + " / mo", "Long-term 12-month lease. " + money(rent * 12) + " a year before costs.", C.green, 24);
       y += ch + gap;
-      card(M, cw, ch, C.orangeSoft, "Net monthly cash flow", sign(cf1) + " / mo", "Years 1-" + drawY + ", after the " + Math.round(opShare * 100) + "% cost set-aside and the loan payment. About " + sign(cf2) + " a month after that.", C.orangeInk, 24);
+      card(M, cw, ch, C.orangeSoft, "Net monthly cash flow", sign(cf1) + " / mo", "Years 1-" + drawY + ", after every cost and the loan payment. About " + sign(cf2) + " a month after that.", C.orangeInk, 24);
       card(M + cw + gap, cw, ch, C.sky, "Day-1 equity gain", sign(equity), "The ADU adds about " + money(appraisal) + " in value once the city signs off.", C.navy, 24);
       y += ch + 14;
     })();
     var bothUp = v1 > 0 && v2 > 0;
     callout(cf1 > 0
-      ? "Bottom line: this project works on paper. The rent pays the costs and the loan, with about " + money(cf1) + " a month left over in years 1 to " + drawY + (cf2 > 0 ? " and about " + money(cf2) + " after that." : ".") + (bothUp ? " It stays cash-flow positive even if rent comes in 10% lower and the budget runs 10% over at the same time." : "")
+      ? "Bottom line: this project works on paper. The rent pays every cost and the loan, with about " + money(cf1) + " a month left over in years 1 to " + drawY + (cf2 > 0 ? " and about " + money(cf2) + " after that." : ".") + (bothUp ? " It stays cash-flow positive even if rent comes in 10% lower and the budget runs 10% over at the same time." : "")
       : "Bottom line: at today's example rate, the rent does not fully cover the costs and the loan payment in years 1 to " + drawY + ". Page 3 shows the gap, and the site audit is where we look for a size or financing setup that closes it.",
       C.orangeSoft, C.orange, [90, 58, 0]);
 
     sub("Inside this blueprint");
     y += 4;
-    [["2", "Lot suitability & concept floor plan", "Your project, the rules that apply and a sample layout"],
+    [["2", "Lot suitability & concept floor plan", pc ? "Parcel facts, setbacks and a " + sqft.toLocaleString("en-US") + " sq ft layout" : "Your project, the rules that apply and a sample layout"],
      ["3", "Build budget & cash-flow architecture", "Every cost, the HELOC and what you keep each month"],
      ["4", "Equity creation & valuation upside", "What the ADU adds to the property's value"],
      ["5", "What we verify on site", "The four checks that make it buildable, and how to book them"]].forEach(function (row) {
@@ -333,9 +355,20 @@
 
     // ================= PAGE 2: LOT SUITABILITY & CONCEPT FLOOR PLAN =================
     newPage();
-    heading(2, "Lot suitability & concept floor plan", "Based on your answers and California ADU law. We confirm your parcel's lot size, zoning and utilities on the free site audit.");
+    var lotPct = pc && pc.lotSqft ? Math.round(sqft / pc.lotSqft * 100) : 0;
+    heading(2, "Lot suitability & concept floor plan", pc
+      ? "From the LA County Assessor's record for this parcel." + (pc.lotSqft && lotPct >= 1 && lotPct <= 100 ? " A " + sqft.toLocaleString("en-US") + " sq ft ADU uses about " + lotPct + "% of the " + pc.lotSqft.toLocaleString("en-US") + " sq ft lot, " + (lotPct <= 30 ? "so size is not the issue." : "so we confirm the fit on the site audit.") : " We confirm setbacks and utilities on the free site audit.")
+      : "Based on your answers and California ADU law. We confirm your parcel's lot size, zoning and utilities on the free site audit.");
     (function () {
-      var tiles = [
+      var bb = pc ? [pc.beds ? pc.beds + " bed" : "", pc.baths ? pc.baths + " bath" : ""].filter(Boolean).join(" / ") : "";
+      var tiles = pc ? [
+        ["Parcel number (APN)", pc.apn, pc.legal || hood || "LA County Assessor"],
+        ["Lot size", pc.lotSqft ? pc.lotSqft.toLocaleString("en-US") + " sq ft" : "On the site audit", pc.lotSqft && lotPct >= 1 && lotPct <= 100 ? "About " + lotPct + "% used by the ADU" : "From the county map"],
+        ["Zoning", pc.zoning ? (cityLA ? "LA " : "") + pc.zoning : "Set by the city", pc.zoning ? (pc.zoningDesc || "From the zoning map") : (pc.jurisdiction || "Confirmed on the site audit")],
+        ["Existing use", (pc.use || "Residential") + (pc.yearBuilt ? ", built " + pc.yearBuilt : ""), (pc.units > 1 ? pc.units + " units, " + bb + " total" : bb) || "From the Assessor's record"],
+        ["Building size", pc.buildingSqft ? pc.buildingSqft.toLocaleString("en-US") + " sq ft" : "On the site audit", pc.use ? "The existing " + useLow : "The existing building"],
+        ["ADU setbacks", garage ? "None needed" : "4 ft rear & side", garage ? "The existing footprint is reused" : "State limit for a detached ADU"]
+      ] : [
         ["Property", duplex ? "Duplex / multi-family" : "Single-family home", duplex ? "Up to 2 detached ADUs" : "1 ADU + 1 junior ADU allowed"],
         ["ADU type", garage ? "Garage conversion" : d.custom ? "Custom-size detached" : "Detached ADU", garage ? "Reuses the existing garage" : "A new building in the yard"],
         ["Size", sqft.toLocaleString("en-US") + " sq ft", "$250 per sq ft to build"],
@@ -361,7 +394,7 @@
                        : ["Impact fees stay fair", "At 750 sq ft or more, city fees must be in proportion to your home's size. A 749 sq ft design avoids them."],
         garage ? ["No replacement parking", "Converting a garage to an ADU never requires replacing its parking spaces."]
                : ["Parking often waived", "Within 1/2 mile of public transit, the city can't require parking for the ADU."],
-        ["Prop 13 tax base protected", "Only the new ADU is added to your tax bill. Your home's existing tax base stays the same."]
+        ["Prop 13 tax base protected", "Only the new ADU is added to the tax bill. " + (pkind ? homeCap + "'s" : "Your home's") + " existing tax base stays the same."]
       ];
       var gap = 8, tw = (CW - 2 * gap) / 3;
       font("normal", 8.5);
@@ -378,8 +411,8 @@
     sub(planExact ? "A possible " + sqft.toLocaleString("en-US") + " sq ft layout" : "Example layout: our " + plan.name);
     (function () {
       var note = planExact
-        ? "Concept only. This is an example of what could fit in " + sqft.toLocaleString("en-US") + " sq ft, not your project's design or a construction drawing, and not to exact scale. A licensed designer sets the final layout and your city approves it."
-        : "Concept only. This sample plan shows the feel of the space; your designer sizes the real layout to " + sqft.toLocaleString("en-US") + " sq ft. It is not a construction drawing and not to exact scale, and your city approves the final design.";
+        ? "Concept only. This is an example of what could fit in " + sqft.toLocaleString("en-US") + " sq ft, not your project's design or a construction drawing, and not to exact scale. A licensed designer sets the final layout and " + (cityLA ? "the City of Los Angeles (LADBS)" : cityName) + " approves it."
+        : "Concept only. This sample plan shows the feel of the space; your designer sizes the real layout to " + sqft.toLocaleString("en-US") + " sq ft. It is not a construction drawing and not to exact scale, and " + (cityLA ? "the City of Los Angeles (LADBS)" : cityName) + " approves the final design.";
       font("normal", 8.5); var nl = wrap(note, CW - 28), nh = nl.length * 11.5 + 14;
       var avail = BOTTOM - y - nh - 30;
       var bottom = drawPlan(plan, M, y + 6, CW, Math.min(avail, 330));
@@ -403,7 +436,7 @@
     table([250, 106, 160], [
       ["Cost item", "Amount", "Status"],
       ["Construction, " + sqft.toLocaleString("en-US") + " sq ft at $250 per sq ft", money(cost), "From the build price"],
-      ["School district fee", school ? "About " + money(school) : "$0", school ? "Varies by district, about $5 per sq ft" : "None at 500 sq ft or less"],
+      [cityLA ? "LAUSD school fee ($" + SCHOOL_RATE.toFixed(2) + " per sq ft)" : "School district fee", school ? (cityLA ? "" : "About ") + money(school) : "$0", school ? (cityLA ? "Set rate" : "Varies by district, about $" + SCHOOL_RATE.toFixed(2) + " per sq ft") : "None at 500 sq ft or less"],
       ["City impact fees", d.impactExempt ? "$0" : "Varies", d.impactExempt ? "Under 750 sq ft (state law)" : "Set by your city, by home size"],
       ["City plan check and building permit", "About " + money(permits), "Estimate: $5,000 to $15,000"],
       ["Sewer and power connection fees", "About " + money(utilities), "Estimate: $1,000 to $15,000"],
@@ -415,7 +448,7 @@
     y += 8 * gapK;
     (function () {
       var gap = 10, bw = (CW - 2 * gap) / 3, bh = 76;
-      card(M, bw, bh, C.mist, "You borrow", money(cost), "At an example " + rateP.toFixed(2) + "% rate, against your home's equity", C.deep, 17);
+      card(M, bw, bh, C.mist, "You borrow", money(cost), "At an example " + rateP.toFixed(2) + "% rate, against " + (pkind ? home + "'s" : "your home's") + " equity", C.deep, 17);
       card(M + bw + gap, bw, bh, C.orangeSoft, "Years 1-" + drawY + ": interest only", money(io) + " / mo", "The balance stays at " + money(cost), C.orangeInk, 17);
       card(M + 2 * (bw + gap), bw, bh, C.sky, "Years " + (drawY + 1) + "-" + span + ": pay it down", money(amort) + " / mo", "Paid off in full at year " + span, C.navy, 17);
       y += bh + 4;
@@ -429,7 +462,7 @@
       var op = 20, tw = (CW - 3 * op) / 4, th = 76;
       var vals = [money(rent), money(opex), money(io), sign(cf1)];
       var labels = ["Gross rent", "Operating expenses", "HELOC payment", "Net monthly cash flow"];
-      var notes = ["12-month lease", Math.round(opShare * 100) + "% set-aside", "Phase 1: " + phase1, cf1 >= 0 ? "Yours to keep" : "From your pocket"];
+      var notes = ["12-month lease", "Detailed below", "Phase 1: " + phase1, cf1 >= 0 ? "Yours to keep" : "From your pocket"];
       var bgs = [C.greenSoft, C.mist, C.orangeSoft, cf1 >= 0 ? C.green : C.orange];
       vals.forEach(function (v, i) {
         var tx = M + i * (tw + op), last = i === 3;
@@ -451,7 +484,7 @@
       font("normal", 9.5, C.deep); doc.text(lines, tx, y + 17.5, { lineHeightFactor: 1.37 });
       y += bh + 12 * gapK;
     })();
-    para("Operating expenses: a " + Math.round(opShare * 100) + "% set-aside (" + money(opex) + " a month) for empty months, property tax on the new unit only (Prop 13), landlord insurance and repairs.", 8.5, C.muted, "normal", M, CW, 1.35);
+    para("Operating expenses: about " + Math.round(OX.vacancy * 100) + "% for empty months (" + money(ox.vacancy) + "), property tax on the ADU only (" + money(ox.tax) + "), landlord insurance (" + money(ox.insurance) + "), repairs (" + money(ox.repairs) + ") and savings for a roof or AC later (" + money(ox.reserve) + "). The tenant pays electricity and gas on a separate meter.", 8.5, C.muted, "normal", M, CW, 1.35);
     if (d.rentRange && !tight) para("Rent check: " + plain(d.rentRange) + " is the typical range for a new " + layout.replace(", 1 bath", "").toLowerCase() + " ADU of this size. We confirm it against local rents on the site audit.", 8.5, C.muted, "normal", M, CW, 1.35);
     y += 6 * gapK;
     callout(bothUp
@@ -496,7 +529,8 @@
       stroke(C.navy); doc.setLineWidth(1); doc.setLineDashPattern([3, 2], 0); doc.line(X(cost), top - 6, X(cost), top + chartH + 6); doc.setLineDashPattern([], 0); doc.setLineWidth(0.6);
       y = top + chartH + 6;
     })();
-    var p4Note = "Before any market appreciation. During years 1 to " + drawY + " the loan is interest only, so you still owe " + money(cost) + " at the end of year " + drawY + ". Only a licensed appraiser can set the final value.";
+    var unitsAfter = ((pc && pc.units > 1 ? pc.units : unitsNow) || 1) + 1;
+    var p4Note = "Before any market appreciation. During years 1 to " + drawY + " the loan is interest only, so you still owe " + money(cost) + " at the end of year " + drawY + "." + (unitsAfter >= 3 ? " An appraiser can also value a " + unitsAfter + "-unit property by its rent (the income approach), which may come in higher." : "") + " Only a licensed appraiser can set the final value.";
     var p4Catch = "The catch: none of this equity exists until the ADU is permitted and built, and four site conditions decide whether it can be. Page 5 shows what we check and how to book it.";
     var rest = 18 + 10 + 72 + 6 + paraH(p4Note, 8.5, CW, 1.35) + calloutH(p4Catch);
     var free = BOTTOM - 12 - y - rest;
@@ -526,11 +560,11 @@
     heading(5, "4 things we verify on your lot", "Your numbers work on paper. These four checks are what turn a paper plan into a buildable one. Any of them can change the cost, so we confirm them before you pay for plans.");
     (function () {
       var gaps = [
-        ["Sewer depth", "How deep the sewer line runs and its condition from the ADU to the street. It decides whether the ADU can drain by gravity or needs a pump.", "Hookup fees: about $1,000 to $15,000 (page 3)"],
-        ["Electrical panel capacity", "Your main panel and utility service size. A new unit may need a panel or service upgrade, which is one of the most common surprise costs.", "Hookup fees: about $1,000 to $15,000 (page 3)"],
-        ["City records & overlays", "A city records check for overlay zones, easements, open permits or code cases that could change what can be built or how long plan check takes.", "Plans and plan check: about 2 to 4 months"],
+        ["Sewer depth", "How deep the sewer line runs and its condition from the back of the lot to the street. It decides whether the ADU can drain by gravity or needs a pump.", "Hookup fees: about $1,000 to $15,000 (page 3)"],
+        ["Electrical panel capacity", (pkind ? homeCap + "'s main panel" : "Your main panel") + " and " + (cityLA ? "LADWP" : "utility") + " service size. A new unit may need a panel or service upgrade, which is one of the most common surprise costs.", "Hookup fees: about $1,000 to $15,000 (page 3)"],
+        [cityLA ? "LADBS & ZIMAS overlays" : "City records & overlays", "A city records check for overlay zones, easements, open permits or code cases that could change what can be built or how long plan check takes.", "Plans and plan check: about 2 to 4 months"],
         garage ? ["Garage structure & fit", "The slab, foundation, framing and ceiling height of the existing garage, to confirm it can be converted as-is or what needs work.", "The existing footprint keeps setbacks simple"]
-               : ["Rear setbacks & backyard fit", "A site plan showing the 4-foot rear and side setbacks, your home, any garage or shed and trees, to confirm the " + sqft.toLocaleString("en-US") + " sq ft unit fits.", d.impactExempt ? "Under 750 sq ft, city impact fees stay at $0" : "At 749 sq ft or less, city impact fees drop to $0"]
+               : ["Rear setbacks & backyard fit", "A site plan showing the 4-foot rear and side setbacks, " + home + ", any garage or shed and trees, to confirm the " + sqft.toLocaleString("en-US") + " sq ft unit fits.", d.impactExempt ? "At " + sqft.toLocaleString("en-US") + " sq ft, city impact fees stay at $0" : "At 749 sq ft or less, city impact fees drop to $0"]
       ];
       var gap = 12, cw = (CW - gap) / 2;
       font("normal", 9);

@@ -80,6 +80,112 @@ app.post("/api/verify-email", express.json({ limit: "2kb" }), async (req, res) =
   } finally { clearTimeout(timer); }
 });
 
+// ---------- Parcel facts for the Blueprint PDF (free public map services, no key) ----------
+// LA County Assessor parcels (APN, use, units, year built, building and lot size), City of LA zoning,
+// LA County zoning for unincorporated areas, LA Times neighborhoods (City of LA) and county community names.
+// Outside LA County nothing matches and the page falls back to its general lot check.
+const GIS = {
+  parcel: process.env.PARCEL_URL || "https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer/0/query",
+  laZoning: "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/Zoning/FeatureServer/15/query",
+  laHood: "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/LA_Times_Neighborhood_Boundaries/FeatureServer/0/query",
+  countyZoning: "https://arcgis.gis.lacounty.gov/arcgis/rest/services/DRP/GISNET_Public/MapServer/345/query",
+  community: "https://arcgis.gis.lacounty.gov/arcgis/rest/services/DRP/GISNET_Public/MapServer/41/query"
+};
+const PARCEL_FIELDS = "AIN,APN,SitusFullAddress,SitusCity,TaxRateCity,UseType,UseDescription,LegalDescription,CENTER_LAT,CENTER_LON,Shape.STArea()," +
+  [1, 2, 3, 4, 5].map((i) => ["YearBuilt", "Units", "Bedrooms", "Bathrooms", "SQFTmain"].map((f) => f + i).join(",")).join(",");
+const parcelCache = new Map();   // key -> { at, body }, 7 days
+const parcelHits = new Map();    // ip -> timestamps, 30 lookups per 10 minutes
+async function gisQuery(url, params, ms) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms || 5000);
+  try {
+    const q = new URLSearchParams(Object.assign({ returnGeometry: "false", f: "json" }, params));
+    const r = await fetch(url + "?" + q.toString(), { signal: ctl.signal, headers: { Accept: "application/json" } });
+    const j = await r.json();
+    return (j.features || []).map((f) => f.attributes);
+  } catch (e) { return []; } finally { clearTimeout(timer); }
+}
+const atPoint = (lng, lat, fields) => ({ geometry: lng + "," + lat, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects", outFields: fields || "*" });
+const titleCase = (t) => String(t || "").toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace(/\s+/g, " ").trim();
+const LA_ZONE_NAMES = { A1: "Agricultural", A2: "Agricultural", RA: "Suburban residential", RE: "Residential estate", RS: "Suburban residential", R1: "One-family residential",
+  RU: "Small-lot residential", RZ: "Residential zero side yard", RW1: "One-family residential waterways", R2: "Two-family residential", RD: "Restricted-density multiple dwelling",
+  RMP: "Mobile home park", RW2: "Two-family residential waterways", R3: "Multiple dwelling", RAS3: "Residential/accessory services", R4: "Multiple dwelling", RAS4: "Residential/accessory services", R5: "Multiple dwelling" };
+function useName(desc, units) {
+  const d = String(desc || "").toLowerCase();
+  if (/^single/.test(d) || units === 1) return "Single-family home";
+  if (/two units/.test(d) || units === 2) return "Duplex";
+  if (/three units/.test(d) || units === 3) return "Triplex";
+  if (/four units/.test(d) || units === 4) return "Fourplex";
+  return titleCase(desc);
+}
+function legalName(legal) {
+  const t = String(legal || "").replace(/\s+/g, " ").trim();
+  let m = t.match(/^(?:TRACT|TR)\s*(?:NO|#|=)?\s*(\d+)\s+LOT\s+(\w+)/i);
+  if (m) return "Tract " + m[1] + ", Lot " + m[2];
+  m = t.match(/^([A-Z][A-Z .'&-]+?)\s+LOT\s+(\w+)/i);
+  if (m && !/^(TRACT|TR|PARCEL|SUB|POR|EX)\b/i.test(m[1])) return titleCase(m[1]) + ", Lot " + m[2];
+  return "";
+}
+function parseAddress(a) {
+  const t = String(a || "").toUpperCase().replace(/[^A-Z0-9 ,]/g, " ");
+  const house = (t.match(/^\s*(\d{1,6})\b/) || [])[1], zip = (t.match(/\b(9\d{4})\b(?!.*\b9\d{4}\b)/) || [])[1];
+  const street = (t.split(",")[0] || "").replace(/^\s*\d+\s*/, "").split(/\s+/)
+    .filter((w) => w && !/^(N|S|E|W|NE|NW|SE|SW|NORTH|SOUTH|EAST|WEST|ST|STREET|AVE|AV|AVENUE|BLVD|DR|DRIVE|RD|ROAD|PL|PLACE|CT|COURT|LN|LANE|WAY|TER|CIR|PKWY|HWY|APT|UNIT|NO)$/.test(w) && !/^\d+$/.test(w))
+    .sort((x, y) => y.length - x.length)[0];
+  return house && zip && street ? { house, zip, street } : null;
+}
+app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!sameSite(req)) return res.status(403).json({ found: false, reason: "origin" });
+  const b = req.body || {}, lat = Number(b.lat), lng = Number(b.lng), address = String(b.address || "").slice(0, 200);
+  const hasPt = isFinite(lat) && isFinite(lng) && lat > 32 && lat < 35.5 && lng > -119.5 && lng < -117;
+  const key = hasPt ? lat.toFixed(5) + "," + lng.toFixed(5) : address.toUpperCase().replace(/\s+/g, " ");
+  if (!key) return res.status(400).json({ found: false, reason: "no address" });
+  const hit = parcelCache.get(key);
+  if (hit && Date.now() - hit.at < 7 * 86400000) return res.json(hit.body);
+  const now = Date.now(), list = (parcelHits.get(req.ip) || []).filter((t) => now - t < 600000);
+  list.push(now); parcelHits.set(req.ip, list); if (parcelHits.size > 5000) parcelHits.clear();
+  if (list.length > 30) return res.json({ found: false, reason: "rate_limited" });
+
+  let rows = hasPt ? await gisQuery(GIS.parcel, atPoint(lng, lat, PARCEL_FIELDS)) : [];
+  if (!rows.length) {
+    // The pin can land on the street; match the typed address instead (house number + street name + ZIP)
+    const p = parseAddress(address);
+    if (p) rows = await gisQuery(GIS.parcel, { where: "SitusHouseNo='" + p.house + "' AND SitusStreet LIKE '%" + p.street + "%' AND SitusZIP LIKE '" + p.zip + "%'", outFields: PARCEL_FIELDS, resultRecordCount: "3" });
+  }
+  const a = rows[0];
+  if (!a) { const body = { found: false, reason: "no parcel" }; parcelCache.set(key, { at: Date.now(), body }); return res.json(body); }
+  const sum = (f) => [1, 2, 3, 4, 5].reduce((s, i) => s + (Number(a[f + i]) || 0), 0);
+  const units = sum("Units"), x = a.CENTER_LON || lng, y = a.CENTER_LAT || lat;
+  const taxCity = String(a.TaxRateCity || "").toUpperCase();
+  const [laZ, laH, coZ, comm] = await Promise.all([
+    taxCity === "LOS ANGELES" ? gisQuery(GIS.laZoning, atPoint(x, y, "Zoning,CATEGORY")) : [],
+    taxCity === "LOS ANGELES" ? gisQuery(GIS.laHood, atPoint(x, y, "name")) : [],
+    taxCity === "UNINCORPORATED" ? gisQuery(GIS.countyZoning, atPoint(x, y, "ZONE,Z_DESC")) : [],
+    gisQuery(GIS.community, atPoint(x, y, "CITYNAME_ALF,NAME,JURISDICTION"))
+  ]);
+  let zoning = "", zoningDesc = "", jurisdiction = "";
+  if (laZ[0]) {
+    zoning = String(laZ[0].Zoning || "").trim();
+    const base = zoning.replace(/^\[?Q\]?|^\(T\)|^\(Q\)/, "").replace(/^\W+/, "").split(/[-(]/)[0];
+    zoningDesc = LA_ZONE_NAMES[base] || titleCase(laZ[0].CATEGORY);
+  } else if (coZ[0]) { zoning = String(coZ[0].ZONE || "").trim(); zoningDesc = titleCase(coZ[0].Z_DESC); }
+  const c = comm[0] || {};
+  const city = c.CITYNAME_ALF ? titleCase(c.CITYNAME_ALF) : titleCase(String(a.SitusCity || "").replace(/\s+CA$/, ""));
+  jurisdiction = c.JURISDICTION === "UNINCORPORATED AREA" ? "Unincorporated Los Angeles County" : city ? "City of " + city : "";
+  const neighborhood = laH[0] ? String(laH[0].name || "") : c.NAME ? titleCase(c.NAME) : "";
+  const year = String(a.YearBuilt1 || "").trim();
+  const body = {
+    found: true, source: "LA County Assessor",
+    apn: a.APN || "", address: titleCase(a.SitusFullAddress || "").replace(/ Ca (\d{5})$/, ", CA $1"), city, jurisdiction, neighborhood,
+    legal: legalName(a.LegalDescription), use: useName(a.UseDescription, units), useType: a.UseType || "",
+    units, beds: sum("Bedrooms"), baths: sum("Bathrooms"), yearBuilt: /^\d{4}$/.test(year) && year !== "0000" ? year : "",
+    buildingSqft: sum("SQFTmain"), lotSqft: Math.round(Number(a["Shape.STArea()"]) || 0),
+    zoning, zoningDesc, cityOfLA: taxCity === "LOS ANGELES"
+  };
+  parcelCache.set(key, { at: Date.now(), body }); if (parcelCache.size > 5000) parcelCache.clear();
+  res.json(body);
+});
+
 // Static site: pages are short-cached so edits show quickly, images and fonts cache longer
 app.use(express.static(ROOT, {
   dotfiles: "ignore",
