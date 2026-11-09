@@ -708,6 +708,9 @@
     .fplan .perk { margin-top: 12px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--green); }
     /* Collapsible case studies and plans (all screen sizes) */
     .cases, .fplans { align-items: start; }
+    details.case .case-k { margin-bottom: 16px; }
+    details.case > summary .case-tog { margin-top: auto; }
+    @media (min-width: 1200px) { details.case .top { flex-wrap: nowrap; gap: 6px; } details.case .zip, details.case .win { font-size: 12px; padding: 5px 8px; white-space: nowrap; } }
     @media (min-width: 1021px) { .case dl { grid-template-columns: 1fr; gap: 2px; } .case dd { text-align: left; margin-bottom: 8px; white-space: nowrap; } }
     details.case, details.fplan { display: block; padding: 0; }
     details.case > summary, details.fplan > summary { display: flex; flex-direction: column; list-style: none; cursor: pointer; padding: 26px 26px 20px; border-radius: 22px; }
@@ -2050,6 +2053,18 @@
     function phoneMode() { var on = mqPhone.matches; cmpMode(on); foldMode(on); }
     phoneMode();
     if (mqPhone.addEventListener) mqPhone.addEventListener("change", phoneMode); else mqPhone.addListener(phoneMode);
+    // 3. Case study cards: same closed height when they sit side by side, so the bottoms line up
+    var caseTops = Array.prototype.slice.call(document.querySelectorAll("details.case > summary"));
+    function evenCases() {
+      caseTops.forEach(function (t) { t.style.minHeight = ""; });
+      if (!window.matchMedia("(min-width: 1021px)").matches) return;
+      var h = Math.max.apply(null, caseTops.map(function (t) { return t.getBoundingClientRect().height; }));
+      caseTops.forEach(function (t) { t.style.minHeight = Math.ceil(h) + "px"; });
+    }
+    evenCases();
+    window.addEventListener("resize", evenCases);
+    window.addEventListener("load", evenCases);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(evenCases);
     // 4. While the lot check is on screen, the bottom call bar steps aside for its Next button
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (es) { es.forEach(function (e) { document.body.classList.toggle("wiz-in", e.isIntersecting); }); }, { rootMargin: "-30% 0px -30% 0px" }).observe($("feasibility"));
