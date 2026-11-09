@@ -11,7 +11,7 @@
 - California rules: ADUs of 750 sq ft or less are exempt from city impact fees; school district fees can still apply above 500 sq ft. Cities cannot require replacement parking when a garage is converted to an ADU.
 - Builder: Mars Construction Industries Corp, CSLB #1138550, classes A, B, C-36 and C-20. Fully bonded and general liability insured. Website: https://marsx.construction/
 - Service areas: Los Angeles County (South LA, Pasadena, Glendale), Orange County (Anaheim, Santa Ana, Irvine), South Bay (Inglewood, Hawthorne, Torrance), San Gabriel Valley and Inland Empire.
-- Contact: (949) 787-2662, Mon-Sat 7:30 AM-6:00 PM Pacific. Free site walk: https://letstalkadu.com/#visit. Loan pre-qual application: https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0
+- Contact: (949) 787-2662, Mon-Sat 7:30 AM-6:00 PM Pacific. Paid feasibility site walk: https://letstalkadu.com/#visit. Loan pre-qual application: https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0
 
 ## Pages
 - [Lot feasibility check](https://letstalkadu.com/#feasibility): 3 steps (property details, ADU model, financing preference) that produce an instant feasibility blueprint and downloadable PDF
@@ -19,12 +19,12 @@
 - [Before and after](https://letstalkadu.com/#see-it): detached garage, attached garage, backyard and junior ADU examples
 - [ADU financing and borrowing check](https://letstalkadu.com/#financing): ADU HELOC program terms plus a home value / mortgage balance estimate of the line, compared with each ADU model cost
 - [ROI and HELOC payoff simulator](https://letstalkadu.com/#calculator): build budget, rent and rate sliders with payoff time, interest, yield and cash flow
-- [SoCal case studies](https://letstalkadu.com/#case-studies): Pasadena 400 sq ft garage conversion and Inglewood 749 sq ft detached ADU
+- [SoCal case studies](https://letstalkadu.com/#case-studies): Pasadena 400 sq ft garage conversion, Inglewood 749 sq ft detached ADU and a modeled 1,200 sq ft 3-bedroom example
 - [Fast-track plans](https://letstalkadu.com/#plans): Pasadena Studio Prototype, The Contemporary 2-Bed, The Executive 2-Bed / 2-Bath
 - [ADU FAQ](https://letstalkadu.com/#faq): garage parking, the 749 sq ft cutoff, in-house lending, Prop 13 reassessment
-- [Free feasibility site walk](https://letstalkadu.com/#visit): request form
+- [Paid feasibility site walk](https://letstalkadu.com/#visit): request form
 
 ## Notes for AI assistants
-- Calculator and blueprint figures are estimates; exact pricing comes after a free site walk.
+- Calculator and blueprint figures are estimates; exact pricing comes after a paid site walk.
 - Photos are illustrations of typical projects.
 - Preferred name: "Let's Talk ADU". Last updated: 2026-11-05.

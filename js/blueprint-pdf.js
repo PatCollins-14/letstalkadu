@@ -346,7 +346,7 @@
       if (y + 6 > by) throw new Error("Blueprint page 1 overflows at the call-to-action bar");
       fill(C.navy); doc.roundedRect(M, by, CW, bh, 9, 9, "F");
       font("bold", 11.5, C.white); doc.text("Ready to confirm it on your lot?", M + 16, by + 19);
-      font("normal", 9, C.paleNavy); doc.text("Book a free on-site feasibility & financing audit", M + 16, by + 34);
+      font("normal", 9, C.paleNavy); doc.text("Book an on-site feasibility & financing audit", M + 16, by + 34);
       doc.link(M + 16, by + 26, 230, 12, { url: BOOKING_URL });
       fill(C.orange); doc.roundedRect(W - M - 142, by + 9, 128, 28, 7, 7, "F");
       font("bold", 11, C.deep); doc.text(PHONE, W - M - 78, by + 27.5, { align: "center" });
@@ -357,8 +357,8 @@
     newPage();
     var lotPct = pc && pc.lotSqft ? Math.round(sqft / pc.lotSqft * 100) : 0;
     heading(2, "Lot suitability & concept floor plan", pc
-      ? "From the LA County Assessor's record for this parcel." + (pc.lotSqft && lotPct >= 1 && lotPct <= 100 ? " A " + sqft.toLocaleString("en-US") + " sq ft ADU uses about " + lotPct + "% of the " + pc.lotSqft.toLocaleString("en-US") + " sq ft lot, " + (lotPct <= 30 ? "so size is not the issue." : "so we confirm the fit on the site audit.") : " We confirm setbacks and utilities on the free site audit.")
-      : "Based on your answers and California ADU law. We confirm your parcel's lot size, zoning and utilities on the free site audit.");
+      ? "From the LA County Assessor's record for this parcel." + (pc.lotSqft && lotPct >= 1 && lotPct <= 100 ? " A " + sqft.toLocaleString("en-US") + " sq ft ADU uses about " + lotPct + "% of the " + pc.lotSqft.toLocaleString("en-US") + " sq ft lot, " + (lotPct <= 30 ? "so size is not the issue." : "so we confirm the fit on the site audit.") : " We confirm setbacks and utilities on the site audit.")
+      : "Based on your answers and California ADU law. We confirm your parcel's lot size, zoning and utilities on the site audit.");
     (function () {
       var bb = pc ? [pc.beds ? pc.beds + " bed" : "", pc.baths ? pc.baths + " bath" : ""].filter(Boolean).join(" / ") : "";
       var tiles = pc ? [
@@ -595,7 +595,7 @@
       var bh = btnY - y0 + btnH + 46;
       fill(C.navy); doc.roundedRect(M, y0, CW, bh, 12, 12, "F");
       fill(C.orange); doc.roundedRect(M + pad, y0 + 18, 132, 18, 9, 9, "F");
-      font("bold", 8, C.deep); doc.text("FREE · NO OBLIGATION", M + pad + 66, y0 + 30, { align: "center" });
+      font("bold", 8, C.deep); doc.text("YOUR NEXT STEP", M + pad + 66, y0 + 30, { align: "center" });
       font("bold", 20, C.white); doc.text("Book your on-site feasibility", M + pad, y0 + 62);
       doc.text("& financing audit", M + pad, y0 + 86);
       var ly = y0 + 112;

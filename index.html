@@ -666,7 +666,7 @@
     .prequal strong { display: block; color: var(--navy-deep); }
 
     /* Case studies */
-    .cases { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .cases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
     .case { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 26px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
     .case .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
     .case .zip { font: 700 13px var(--sans); color: var(--navy); background: var(--sky); padding: 5px 10px; border-radius: 999px; }
@@ -708,6 +708,7 @@
     .fplan .perk { margin-top: 12px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--green); }
     /* Collapsible case studies and plans (all screen sizes) */
     .cases, .fplans { align-items: start; }
+    @media (min-width: 1021px) { .case dl { grid-template-columns: 1fr; gap: 2px; } .case dd { text-align: left; margin-bottom: 8px; white-space: nowrap; } }
     details.case, details.fplan { display: block; padding: 0; }
     details.case > summary, details.fplan > summary { display: flex; flex-direction: column; list-style: none; cursor: pointer; padding: 26px 26px 20px; border-radius: 22px; }
     details.case > summary::-webkit-details-marker, details.fplan > summary::-webkit-details-marker { display: none; }
@@ -1110,10 +1111,10 @@
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Tax Shelter:</strong> Eligible for Cost Segregation &amp; HELOC interest&nbsp;write-offs.</span></li>
           </ul>
 
-          <details class="disc in-card"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the free site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></details>
+          <details class="disc in-card"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">This blueprint is an automated estimate based on the ADU model you picked and general California ADU rules. It is not an appraisal, a zoning or permit decision, a construction bid or a loan offer. Your city makes the final call on setbacks, fees and parking, and we confirm your lot on the site walk. Rent, value and payoff figures are estimates. Ask a tax professional about cost segregation and interest&nbsp;deductions.</span></details>
           <div class="bp-next">
-            <div><b>Next Step: Free On-Site Utility &amp; Sewer&nbsp;Scan</b><span>We verify your main electrical panel capacity (200A) and sewer invert&nbsp;depth.</span></div>
-            <button type="button" class="btn btn-primary" data-open="Feasibility Form Blueprint">Schedule Free Feasibility Site&nbsp;Walk</button>
+            <div><b>Next Step: On-Site Utility &amp; Sewer&nbsp;Scan</b><span>We verify your main electrical panel capacity (200A) and sewer invert&nbsp;depth.</span></div>
+            <button type="button" class="btn btn-primary" data-open="Feasibility Form Blueprint">Schedule Feasibility Site&nbsp;Walk</button>
           </div>
           <div class="bp-again"><button type="button" class="back" id="restart">← Run another&nbsp;property</button></div>
         </div>
@@ -1233,7 +1234,7 @@
           <p id="b-why" class="b-why">Up to 89% of your home's value for a primary home and 75% for an investment property, keeping at least $30K of equity, from $5,000 to&nbsp;$1M.</p>
           <ul class="b-fit" id="b-fit"></ul>
           <div class="field b-want"><label for="b-want">How much would you like to&nbsp;borrow?</label><input id="b-want" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" aria-describedby="b-want-n"><span class="b-want-n" id="b-want-n" aria-live="polite"></span></div>
-          <a class="btn btn-primary" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Apply for Loan&nbsp;Pre-Qual</a>
+          <a class="btn btn-primary" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Get&nbsp;Pre-qualified</a>
         </div>
       </div>
       <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></details>
@@ -1300,7 +1301,7 @@
           <p class="calc-line" id="calc-line"></p>
           <div class="prequal">
             <p><strong>Want to run this specifically on your&nbsp;parcel?</strong>Our in-house lending specialists will pull your primary mortgage balance and structure a custom zero-down&nbsp;HELOC.</p>
-            <a class="btn btn-navy" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Request Loan&nbsp;Pre-Qual</a>
+            <a class="btn btn-navy" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Get&nbsp;Pre-qualified</a>
           </div>
         </div>
       </div>
@@ -1363,8 +1364,30 @@
           <div class="foot"><span><svg width="16" height="16"><use href="#i-shield"/></svg>Zoning: Inglewood R-1 Setback&nbsp;Compliant</span><button type="button" class="btn btn-ghost" data-open="Inglewood 749 sq ft Case Study">Build Similar Unit&nbsp;→</button></div>
         </div>
         </details>
+        <details class="case">
+          <summary>
+            <div class="top"><span class="zip">Example Pro Forma</span><span class="win">3&nbsp;Bedrooms</span></div>
+            <h3>1,200 sq ft Detached&nbsp;3-Bedroom</h3>
+            <p class="where">Model estimate at about $250/sq ft • Not a completed&nbsp;project</p>
+            <span class="case-k"><span>All-in <b>$300,000</b></span><span>Rent <b>$3,650/mo</b></span></span>
+            <span class="case-tog"><span class="t-more">See the full&nbsp;numbers</span><span class="t-less">Hide the&nbsp;numbers</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </summary>
+          <div class="case-body">
+          <dl>
+            <dt>All-In Turnkey&nbsp;Cost:</dt><dd>$300,000 ($250/sq ft)</dd>
+            <dt>Monthly Market&nbsp;Rent:</dt><dd class="g">$3,650 / month</dd>
+            <dt>Initial HELOC&nbsp;Payment:</dt><dd>$2,000 / month</dd>
+            <dt>Estimated Value&nbsp;Added:</dt><dd>$400,750 (+$100,750 Equity)</dd>
+          </dl>
+          <div class="notes">
+            <div><strong>Payoff Strategy:</strong> 100% of net rent ($2,803/mo) could pay off the $300k HELOC in about <strong>15.8&nbsp;years</strong> at an 8% example&nbsp;rate.</div>
+            <div><strong>Cash Flow:</strong> An estimated +$803/month after costs and the HELOC payment during the 5-year draw&nbsp;period.</div>
+          </div>
+          <div class="foot"><span><svg width="16" height="16"><use href="#i-shield"/></svg>City impact fees apply at 750 sq ft or&nbsp;more</span><button type="button" class="btn btn-ghost" data-open="1,200 sq ft 3-Bedroom Example">Build Similar Unit&nbsp;→</button></div>
+          </div>
+        </details>
       </div>
-      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Results from specific past projects, shown as examples. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></details>
+      <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">The Pasadena and Inglewood results are from specific past projects, shown as examples. The 1,200 sq ft card is an estimate from our pricing model, not a completed project. Costs, rents, appraisals and payoff times vary by property, market and financing, and your results may differ. Past results don't guarantee future outcomes. The floor plans are sample illustrations, not the actual plans of these&nbsp;projects.</span></details>
     </div>
   </section>
 
@@ -1454,13 +1477,13 @@
     </div>
   </section>
 
-  <!-- ================= BOTTOM CTA: FREE PROPERTY FEASIBILITY WALK ================= -->
+  <!-- ================= BOTTOM CTA: PROPERTY FEASIBILITY WALK ================= -->
   <section class="band final" id="visit" aria-labelledby="visit-title">
     <div class="wrap">
       <div>
         <span class="eyebrow">Mars Construction CSLB #1138550 Licensed&nbsp;Consultation</span>
         <h2 id="visit-title">Not sure if your electrical panel or sewer line can support an&nbsp;ADU?</h2>
-        <p class="lead">Request your free property feasibility walk. Speak with a construction lead and in-house loan&nbsp;specialist.</p>
+        <p class="lead">Request your property feasibility walk. Speak with a construction lead and in-house loan&nbsp;specialist.</p>
         <ul class="walk-list">
           <li><svg width="22" height="22" style="flex:none"><use href="#i-check"/></svg>Main electrical panel capacity&nbsp;(200A)</li>
           <li><svg width="22" height="22" style="flex:none"><use href="#i-check"/></svg>Sewer invert depth and&nbsp;cleanout</li>
@@ -1469,8 +1492,8 @@
       </div>
       <div class="card" id="visit-card">
         <form id="visit-form" novalidate>
-          <h3>Free ADU Feasibility &amp; Sewer&nbsp;Scan</h3>
-          <p class="hint">Speak with a construction lead and in-house loan&nbsp;specialist.</p>
+          <h3>ADU Feasibility &amp; Sewer&nbsp;Scan</h3>
+          <p class="hint">Speak with a construction lead and in-house loan specialist. This is a paid visit, and we'll confirm the fee when we schedule&nbsp;it.</p>
           <div class="field"><label for="v-name">Full Name</label><input id="v-name" name="name" type="text" autocomplete="name" autocapitalize="words"><span class="err" id="v-name-err"></span></div>
           <div class="field"><label for="v-phone">Phone Number</label><input id="v-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel"><span class="err" id="v-phone-err"></span></div>
           <div class="field"><label for="v-addr">Property Address</label><input id="v-addr" name="address" type="text" autocomplete="street-address" placeholder="Address, City, Zip"><span class="err" id="v-addr-err"></span></div>
@@ -1484,8 +1507,8 @@
           </div>
           <div class="hp" aria-hidden="true"><label for="v-hp">Leave empty</label><input id="v-hp" type="text" tabindex="-1" autocomplete="off"></div>
           <span class="err" id="v-err" role="alert"></span>
-          <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Free Site&nbsp;Walk</button>
-          <p class="fine consent">By clicking Schedule My Free Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
+          <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Site&nbsp;Walk</button>
+          <p class="fine consent">By clicking Schedule My Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
         </form>
         <div class="success" id="visit-ok" hidden>
           <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -1531,8 +1554,8 @@
           <ul>
             <li><a href="tel:+19497872662">(949) 787-2662</a></li>
             <li>Mon – Sat: 7:30 AM – 6:00 PM PST</li>
-            <li><a href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Apply for Loan&nbsp;Pre-Qual</a></li>
-            <li><a href="#visit">Schedule Free Property&nbsp;Walk</a></li>
+            <li><a href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Get&nbsp;Pre-qualified</a></li>
+            <li><a href="#visit">Request Your Feasibility&nbsp;Walk</a></li>
           </ul>
         </div>
       </div>
@@ -1557,7 +1580,7 @@
       <button class="x" type="button" id="m-close" aria-label="Close">×</button>
       <form id="m-form" novalidate>
         <span class="eyebrow" style="margin-bottom:4px">Mars Construction CSLB #1138550 Licensed&nbsp;Consultation</span>
-        <h3 id="m-title">Free ADU Feasibility &amp; Sewer&nbsp;Scan</h3>
+        <h3 id="m-title">ADU Feasibility &amp; Sewer&nbsp;Scan</h3>
         <span class="ctx" id="m-ctx">Speak with a construction lead and in-house loan&nbsp;specialist.</span>
         <div class="field"><label for="m-name">Full Name</label><input id="m-name" name="name" type="text" autocomplete="name" autocapitalize="words"><span class="err" id="m-name-err"></span></div>
         <div class="field"><label for="m-phone">Phone Number</label><input id="m-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel"><span class="err" id="m-phone-err"></span></div>
@@ -1571,9 +1594,10 @@
           </select>
         </div>
         <div class="hp" aria-hidden="true"><label for="m-hp">Leave empty</label><input id="m-hp" type="text" tabindex="-1" autocomplete="off"></div>
+        <p class="hint" id="m-fee">This is a paid visit, and we'll confirm the fee when we schedule&nbsp;it.</p>
         <span class="err" id="m-err" role="alert"></span>
-        <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Free Site&nbsp;Walk</button>
-        <p class="fine consent">By clicking Schedule My Free Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
+        <button class="btn btn-primary" type="submit" style="width:100%" id="m-btn">Schedule My Site&nbsp;Walk</button>
+        <p class="fine consent">By clicking <span id="m-btn-name">Schedule My Site Walk</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
       </form>
       <div class="success" id="m-ok" hidden>
         <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -2149,6 +2173,11 @@
     function openModal(ctx) {
       lastFocus = document.activeElement; modalCtx = ctx;
       $("m-ctx").textContent = nb("Referencing: " + ctx);
+      var isCity = /^Check if my city/.test(ctx);  // this offer is a free records check, not the paid walk
+      $("m-title").innerHTML = isCity ? "Check Your City's Pre-Approved&nbsp;Plans" : "ADU Feasibility &amp; Sewer&nbsp;Scan";
+      $("m-fee").hidden = isCity;
+      $("m-btn").innerHTML = isCity ? "Check My City's&nbsp;Plans" : "Schedule My Site&nbsp;Walk";
+      $("m-btn-name").textContent = isCity ? "Check My City's Plans" : "Schedule My Site Walk";
       $("m-form").hidden = false; $("m-ok").hidden = true;
       if ($("addr").value && !$("m-addr").value) $("m-addr").value = $("addr").value;
       $("modal").hidden = false;
@@ -2202,7 +2231,7 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261109";  // the 5-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261110";  // the 5-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;
@@ -2581,11 +2610,11 @@
     });
     var okForm = function (formId, okId) { return function () { $(formId).hidden = true; $(okId).hidden = false; }; };
     wire("v", $("visit-form"), {
-      extra: function () { return { form_name: "Free property visit", address: $("v-addr").value.trim(), financing_preference: $("v-pay").value }; },
+      extra: function () { return { form_name: "Property feasibility walk request", address: $("v-addr").value.trim(), financing_preference: $("v-pay").value }; },
       done: okForm("visit-form", "visit-ok")
     });
     wire("m", $("m-form"), {
-      extra: function () { return { form_name: "Quick request", request_context: modalCtx, address: $("m-addr").value.trim(), financing_preference: $("m-pay").value }; },
+      extra: function () { return { form_name: /^Check if my city/.test(modalCtx) ? "City plans check" : "Property feasibility walk request", request_context: modalCtx, address: $("m-addr").value.trim(), financing_preference: $("m-pay").value }; },
       done: okForm("m-form", "m-ok")
     });
   })();
