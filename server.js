@@ -176,6 +176,7 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
   const year = String(a.YearBuilt1 || "").trim();
   const body = {
     found: true, source: "LA County Assessor",
+    residential: a.UseType === "Residential",  // cemeteries, stores, schools etc. get the general lot check instead
     apn: a.APN || "", address: titleCase(a.SitusFullAddress || "").replace(/ Ca (\d{5})$/, ", CA $1"), city, jurisdiction, neighborhood,
     legal: legalName(a.LegalDescription), use: useName(a.UseDescription, units), useType: a.UseType || "",
     units, beds: sum("Bedrooms"), baths: sum("Bathrooms"), yearBuilt: /^\d{4}$/.test(year) && year !== "0000" ? year : "",

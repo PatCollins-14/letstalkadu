@@ -2192,6 +2192,8 @@
     function within(p, ms) { return Promise.race([p, new Promise(function (res) { setTimeout(function () { res(null); }, ms); })]); }
     function parcelFields(pc) {
       if (!pc) return { parcel_found: "no" };
+      // A cemetery, store, school and so on: keep it off the customer's blueprint, but tell Pat what the address matched
+      if (pc.residential === false) return { parcel_found: "non-residential", parcel_apn: pc.apn, parcel_jurisdiction: pc.jurisdiction, parcel_use: pc.use };
       return { parcel_found: "yes", parcel_apn: pc.apn, parcel_neighborhood: pc.neighborhood, parcel_jurisdiction: pc.jurisdiction, parcel_zoning: pc.zoning ? pc.zoning + (pc.zoningDesc ? " (" + pc.zoningDesc + ")" : "") : "",
         parcel_use: pc.use, parcel_units: String(pc.units || ""), parcel_year_built: pc.yearBuilt, parcel_building_sqft: String(pc.buildingSqft || ""), parcel_lot_sqft: String(pc.lotSqft || ""), parcel_legal: pc.legal };
     }
@@ -2265,7 +2267,7 @@
     function preparePlan(btn, who) {
       btn.textContent = "Checking your parcel...";
       return within(parcelFor(), 6000).then(function (pc) {
-        PARCEL = pc;
+        PARCEL = pc && pc.residential !== false ? pc : null;  // only homes get parcel facts on the page and in the PDF
         var extra = parcelFields(pc);
         btn.textContent = "Generating your blueprint...";
         return loadJsPdf().then(function (JsPDF) {
