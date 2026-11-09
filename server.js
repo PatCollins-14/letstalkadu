@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 // Health check for Hostinger and for testing a deploy
-app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, rentcast: !!process.env.RENTCAST_API_KEY, turnstile: !!(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY), private_webhook: !!process.env.GHL_WEBHOOK_URL, time: new Date().toISOString() }));
+app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, rentcast: !!process.env.RENTCAST_API_KEY, turnstile: !!(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY), private_webhook: !!process.env.GHL_WEBHOOK_URL, rent_types: ["Apartment", "Multi-Family"], time: new Date().toISOString() }));
 
 // ---------- Email check (Xverify) ----------
 // The forms ask this route before sending a lead. The key stays here (hPanel env vars XVERIFY_API_KEY and
@@ -254,7 +254,8 @@ app.post("/api/rent", express.json({ limit: "2kb" }), async (req, res) => {
   const sqft = Math.round(Number(b.sqft) || 0);
   const useAddress = /\b\d{5}\b/.test(address);
   if (!sqft || (!useAddress && !hasPt)) return res.json({ found: false, reason: "no_address" });
-  const cacheKey = [address.toUpperCase().replace(/\s+/g, " "), bedrooms, bathrooms, sqft].join("|");
+  const propertyType = b.propertyType === "Multi-Family" ? "Multi-Family" : "Apartment";  // the page never sends this; it's for comparison tests
+  const cacheKey = [address.toUpperCase().replace(/\s+/g, " "), bedrooms, bathrooms, sqft, propertyType].join("|");
   const hit = rentCache.get(cacheKey);
   if (hit && Date.now() - hit.at < 30 * 86400000) return res.json(hit.body);
   const now = Date.now(), list = (rentHits.get(req.ip) || []).filter((t) => now - t < 600000);
@@ -263,7 +264,7 @@ app.post("/api/rent", express.json({ limit: "2kb" }), async (req, res) => {
   const month = new Date().toISOString().slice(0, 7), cap = Number(process.env.RENTCAST_MONTHLY_CAP) || 45;
   if (month !== rentMonth) { rentMonth = month; rentUsed = 0; }
   if (rentUsed >= cap) return res.json({ found: false, reason: "monthly_cap" });
-  const q = new URLSearchParams({ propertyType: "Apartment", bedrooms: String(bedrooms), bathrooms: String(bathrooms), squareFootage: String(sqft), compCount: "15", lookupSubjectAttributes: "false" });
+  const q = new URLSearchParams({ propertyType, bedrooms: String(bedrooms), bathrooms: String(bathrooms), squareFootage: String(sqft), compCount: "15", lookupSubjectAttributes: "false" });
   if (useAddress) q.set("address", address); else { q.set("latitude", String(lat)); q.set("longitude", String(lng)); }
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
   try {
