@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 // Health check for Hostinger and for testing a deploy
-app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, rentcast: !!process.env.RENTCAST_API_KEY, time: new Date().toISOString() }));
+app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, rentcast: !!process.env.RENTCAST_API_KEY, turnstile: !!(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY), private_webhook: !!process.env.GHL_WEBHOOK_URL, time: new Date().toISOString() }));
 
 // ---------- Email check (Xverify) ----------
 // The forms ask this route before sending a lead. The key stays here (hPanel env vars XVERIFY_API_KEY and
@@ -78,6 +78,53 @@ app.post("/api/verify-email", express.json({ limit: "2kb" }), async (req, res) =
   } catch (e) {
     res.json({ status: "unchecked", reason: e.name === "AbortError" ? "timeout" : "error" });
   } finally { clearTimeout(timer); }
+});
+
+// ---------- Lead forms: spam check, then on to the CRM ----------
+// The forms post here so the CRM webhook address never reaches the browser. hPanel env vars:
+// TURNSTILE_SITE_KEY + TURNSTILE_SECRET_KEY switch the Cloudflare check on (both are needed, so one alone can't block leads),
+// GHL_WEBHOOK_URL is the private webhook. Until it is set, the address the page used before keeps leads flowing.
+const GHL_HOOK = process.env.GHL_WEBHOOK_URL || "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/9W0wu2UxPFz79BRvOulh";
+const TS_VERIFY = process.env.TURNSTILE_VERIFY_URL || "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const leadHits = new Map();  // ip -> timestamps, 10 submissions per 10 minutes
+async function timedFetch(url, options, ms) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, Object.assign({ signal: ctl.signal }, options)); } finally { clearTimeout(timer); }
+}
+// "passed", "failed", or "unverified" when Cloudflare itself can't answer (a lead is not lost to their outage)
+async function checkTurnstile(token, secret) {
+  if (!token) return "failed";
+  try {
+    const r = await timedFetch(TS_VERIFY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret, response: token }) }, 6000);
+    if (r.status >= 500) return "unverified";
+    const j = await r.json();
+    if (j.success) return "passed";
+    return (j["error-codes"] || []).includes("internal-error") ? "unverified" : "failed";
+  } catch (e) { return "unverified"; }
+}
+app.get("/api/lead-config", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ turnstileSiteKey: process.env.TURNSTILE_SECRET_KEY ? process.env.TURNSTILE_SITE_KEY || "" : "" });
+});
+app.post("/api/lead", express.json({ limit: "32kb" }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!sameSite(req)) return res.status(403).json({ ok: false, reason: "origin" });
+  const now = Date.now(), list = (leadHits.get(req.ip) || []).filter((t) => now - t < 600000);
+  list.push(now); leadHits.set(req.ip, list); if (leadHits.size > 5000) leadHits.clear();
+  if (list.length > 10) return res.status(429).json({ ok: false, reason: "rate_limited" });
+  const { turnstile_token, ...lead } = req.body || {};
+  const digits = String(lead.phone || "").replace(/\D/g, "");
+  if (String(lead.name || "").trim().length < 2 || digits.length < 10 || (lead.email && !EMAIL_RE.test(String(lead.email)))) return res.status(400).json({ ok: false, reason: "invalid" });
+  const site = process.env.TURNSTILE_SITE_KEY, secret = process.env.TURNSTILE_SECRET_KEY;
+  lead.spam_check = site && secret ? await checkTurnstile(String(turnstile_token || ""), secret) : "off";
+  if (lead.spam_check === "failed") return res.status(403).json({ ok: false, reason: "spam_check" });
+  try {
+    const r = await timedFetch(GHL_HOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lead) }, 10000);
+    if (!r.ok) return res.status(502).json({ ok: false, reason: "crm_" + r.status });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(502).json({ ok: false, reason: e.name === "AbortError" ? "crm_timeout" : "crm_error" });
+  }
 });
 
 // ---------- Parcel facts for the Blueprint PDF (free public map services, no key) ----------

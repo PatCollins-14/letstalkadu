@@ -175,6 +175,8 @@
     .gate .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .gate .field { margin-bottom: 12px; }
     .hp { position: absolute; left: -9999px; }
+    .ts-box { max-width: 100%; overflow: hidden; }
+    .ts-box:has(iframe) { margin: 10px 0; }
     .success { padding: 30px 26px; text-align: center; }
     .success .tick { width: 56px; height: 56px; border-radius: 50%; background: var(--green-soft); display: grid; place-items: center; margin: 0 auto 12px; }
 
@@ -1079,6 +1081,7 @@
               <div class="field"><label for="g-email">Email (your Blueprint PDF goes&nbsp;here)</label><input id="g-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="john@example.com"><span class="err" id="g-email-err"></span></div>
             </div>
             <div class="hp" aria-hidden="true"><label for="g-hp">Leave empty</label><input id="g-hp" type="text" tabindex="-1" autocomplete="off"></div>
+            <div id="g-ts" class="ts-box"></div>
             <span class="err" id="g-err" role="alert"></span>
             <div class="row"><button type="button" class="back" data-next="2">← Back</button><button class="btn btn-primary" type="submit">Generate Instant Feasibility&nbsp;Blueprint</button></div>
             <p class="fine consent">By clicking Generate Instant Feasibility Blueprint, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
@@ -1509,6 +1512,7 @@
             </select>
           </div>
           <div class="hp" aria-hidden="true"><label for="v-hp">Leave empty</label><input id="v-hp" type="text" tabindex="-1" autocomplete="off"></div>
+          <div id="v-ts" class="ts-box"></div>
           <span class="err" id="v-err" role="alert"></span>
           <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Site&nbsp;Walk</button>
           <p class="fine consent">By clicking Schedule My Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
@@ -1598,6 +1602,7 @@
         </div>
         <div class="hp" aria-hidden="true"><label for="m-hp">Leave empty</label><input id="m-hp" type="text" tabindex="-1" autocomplete="off"></div>
         <p class="hint" id="m-fee">This is a paid visit, and we'll confirm the fee when we schedule&nbsp;it.</p>
+        <div id="m-ts" class="ts-box"></div>
         <span class="err" id="m-err" role="alert"></span>
         <button class="btn btn-primary" type="submit" style="width:100%" id="m-btn">Schedule My Site&nbsp;Walk</button>
         <p class="fine consent">By clicking <span id="m-btn-name">Schedule My Site Walk</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
@@ -1646,10 +1651,9 @@
       serviceArea: { south: 32.53, west: -119.65, north: 34.90, east: -114.13 } // address suggestions cover the whole US, with LA, Orange, Riverside, San Bernardino, San Diego and Ventura counties ranked first
     };
 
-    // Same CRM inbound webhook as the previous letstalkadu.com page (public by design: it can only add leads).
-    // GHL workflow "ADU Lead - letstalkadu.com v2 (PDF email)": saves the plan fields and emails the PDF link.
-    // The old v1 hook (.../webhook-trigger/jZSKJkOxYCiKBnJvfyoo) belongs to "ADU Lead - letstalkadu.com Form".
-    var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/9W0wu2UxPFz79BRvOulh";
+    // Leads go to our server (server.js, /api/lead), which runs the spam check and passes them to the GHL workflow
+    // "ADU Lead - letstalkadu.com v2 (PDF email)". The webhook address stays on the server.
+    var LEAD_URL = "/api/lead";
     var SOURCE = "letstalkadu.com landing page";
 
     var $ = function (id) { return document.getElementById(id); };
@@ -2546,6 +2550,38 @@
         .catch(function () { clearTimeout(t); return { status: "unchecked", reason: "no_server", correction: "" }; });
     }
 
+    // ---------- Spam check (Cloudflare Turnstile) ----------
+    // Stays off until both keys are in hPanel. Invisible unless Cloudflare needs the visitor to tick a box.
+    var spam = { key: "", ready: null, ids: {} };
+    function loadSpamCheck() {
+      if (spam.ready) return spam.ready;
+      spam.ready = fetch("/api/lead-config").then(function (r) { return r.json(); }).then(function (c) {
+        spam.key = (c && c.turnstileSiteKey) || "";
+        if (!spam.key || window.turnstile) return;
+        return new Promise(function (res, rej) {
+          var sc = document.createElement("script");
+          sc.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+          sc.onload = res; sc.onerror = rej;
+          document.head.appendChild(sc);
+        });
+      }).catch(function () { spam.ready = null; });
+      return spam.ready;
+    }
+    // A fresh one-time token for this submission, or "" if the check can't run
+    function spamToken(prefix) {
+      return loadSpamCheck().then(function () {
+        if (!spam.key || !window.turnstile) return "";
+        return new Promise(function (res) {
+          var over = false, t = setTimeout(function () { end(""); }, 45000);
+          function end(token) { if (over) return; over = true; clearTimeout(t); res(token || ""); }
+          if (spam.ids[prefix] !== undefined) turnstile.remove(spam.ids[prefix]);
+          spam.ids[prefix] = turnstile.render($(prefix + "-ts"), { sitekey: spam.key, action: "lead", appearance: "interaction-only",
+            callback: end, "error-callback": function () { end(""); return true; }, "timeout-callback": function () { end(""); } });
+        });
+      });
+    }
+    ["gate", "visit-form", "m-form"].forEach(function (id) { $(id).addEventListener("focusin", loadSpamCheck, { once: true }); });
+
     // ---------- Lead forms ----------
     function utm() {
       var out = {};
@@ -2609,10 +2645,14 @@
           })
           .then(function (more) {
             Object.assign(payload, more);
+            btn.textContent = "Confirming you're a person...";
+            return spamToken(prefix);
+          })
+          .then(function (token) {
             btn.textContent = "Sending...";
             var ctl = "AbortController" in window ? new AbortController() : null;
-            timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
-            return fetch(GHL_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined });
+            timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
+            return fetch(LEAD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ turnstile_token: token }, payload)), signal: ctl ? ctl.signal : undefined });
           })
           .then(function (res) { clearTimeout(timer); if (!res.ok) throw new Error(res.status); busy = false; btn.disabled = false; btn.innerHTML = label; finish(); })
           .catch(function (err) {
