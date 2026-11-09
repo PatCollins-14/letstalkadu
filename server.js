@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 // Health check for Hostinger and for testing a deploy
-app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, time: new Date().toISOString() }));
+app.get("/api/health", (req, res) => res.json({ ok: true, site: "letstalkadu.com", xverify: !!process.env.XVERIFY_API_KEY, rentcast: !!process.env.RENTCAST_API_KEY, time: new Date().toISOString() }));
 
 // ---------- Email check (Xverify) ----------
 // The forms ask this route before sending a lead. The key stays here (hPanel env vars XVERIFY_API_KEY and
@@ -185,6 +185,54 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
   };
   parcelCache.set(key, { at: Date.now(), body }); if (parcelCache.size > 5000) parcelCache.clear();
   res.json(body);
+});
+
+// ---------- Address-specific rent (RentCast) ----------
+// The lot check asks this once per submission. The key stays here (hPanel env var RENTCAST_API_KEY).
+// Any failure answers found:false and the page keeps its own model rent, so a lead is never lost.
+// RENTCAST_MONTHLY_CAP limits paid lookups (default 45, inside the free plan's 50); raise it after upgrading.
+const RC_URL = process.env.RENTCAST_URL || "https://api.rentcast.io/v1/avm/rent/long-term";
+const rentCache = new Map();  // address|beds|baths|sqft -> { at, body }, 30 days
+const rentHits = new Map();   // ip -> timestamps, 10 lookups per 10 minutes
+let rentMonth = "", rentUsed = 0;
+app.post("/api/rent", express.json({ limit: "2kb" }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!sameSite(req)) return res.status(403).json({ found: false, reason: "origin" });
+  const key = process.env.RENTCAST_API_KEY;
+  if (!key) return res.json({ found: false, reason: "not_configured" });
+  const b = req.body || {}, address = String(b.address || "").trim().slice(0, 200);
+  const lat = Number(b.lat), lng = Number(b.lng), hasPt = !!b.lat && !!b.lng && isFinite(lat) && isFinite(lng);
+  const bedrooms = Math.max(0, Math.min(8, Math.round(Number(b.bedrooms) || 0)));
+  const bathrooms = Math.max(1, Math.min(8, Number(b.bathrooms) || 1));
+  const sqft = Math.round(Number(b.sqft) || 0);
+  const useAddress = /\b\d{5}\b/.test(address);
+  if (!sqft || (!useAddress && !hasPt)) return res.json({ found: false, reason: "no_address" });
+  const cacheKey = [address.toUpperCase().replace(/\s+/g, " "), bedrooms, bathrooms, sqft].join("|");
+  const hit = rentCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 30 * 86400000) return res.json(hit.body);
+  const now = Date.now(), list = (rentHits.get(req.ip) || []).filter((t) => now - t < 600000);
+  list.push(now); rentHits.set(req.ip, list); if (rentHits.size > 5000) rentHits.clear();
+  if (list.length > 10) return res.json({ found: false, reason: "rate_limited" });
+  const month = new Date().toISOString().slice(0, 7), cap = Number(process.env.RENTCAST_MONTHLY_CAP) || 45;
+  if (month !== rentMonth) { rentMonth = month; rentUsed = 0; }
+  if (rentUsed >= cap) return res.json({ found: false, reason: "monthly_cap" });
+  const q = new URLSearchParams({ propertyType: "Apartment", bedrooms: String(bedrooms), bathrooms: String(bathrooms), squareFootage: String(sqft), compCount: "15", lookupSubjectAttributes: "false" });
+  if (useAddress) q.set("address", address); else { q.set("latitude", String(lat)); q.set("longitude", String(lng)); }
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
+  try {
+    rentUsed++;
+    const r = await fetch(RC_URL + "?" + q.toString(), { signal: ctl.signal, headers: { Accept: "application/json", "X-Api-Key": key } });
+    if (!r.ok) return res.json({ found: false, reason: "rentcast_" + r.status });
+    const j = await r.json();
+    const ten = (n) => Math.round(Number(n) / 10) * 10;
+    const rent = ten(j.rent), low = ten(j.rentRangeLow), high = ten(j.rentRangeHigh);
+    if (!(rent >= 400 && rent <= 20000)) return res.json({ found: false, reason: "no_estimate" });
+    const body = { found: true, rent, low: low > 0 && low <= rent ? low : rent, high: high >= rent ? high : rent, compCount: Array.isArray(j.comparables) ? j.comparables.length : 0 };
+    rentCache.set(cacheKey, { at: Date.now(), body }); if (rentCache.size > 5000) rentCache.clear();
+    res.json(body);
+  } catch (e) {
+    res.json({ found: false, reason: e.name === "AbortError" ? "timeout" : "error" });
+  } finally { clearTimeout(timer); }
 });
 
 // Static site: pages are short-cached so edits show quickly, images and fonts cache longer

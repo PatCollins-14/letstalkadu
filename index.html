@@ -1272,7 +1272,7 @@
           </div>
           <div class="slider">
             <div class="top"><label for="c-rent">Monthly Market&nbsp;Rent</label><output id="c-rent-v" for="c-rent"></output></div>
-            <input type="range" id="c-rent" min="1500" max="3800" step="50" value="2050">
+            <input type="range" id="c-rent" min="1500" max="3800" step="10" value="2050">
           </div>
           <div class="slider">
             <div class="top"><label for="c-rate">HELOC Interest&nbsp;Rate</label><output id="c-rate-v" for="c-rate"></output></div>
@@ -1774,8 +1774,12 @@
     }
     function ym(m) { var y = Math.floor(m / 12), r = m % 12; return y + (y === 1 ? " Year, " : " Years, ") + r + (r === 1 ? " Month" : " Months"); }
     var bp = {};
-    function computeBlueprint() {
-      var d = scopeData(answers.scope), rate = CONFIG.helocRate / 100;
+    function computeBlueprint(market) {
+      var d = Object.assign({}, scopeData(answers.scope)), rate = CONFIG.helocRate / 100;
+      if (market) {  // real rent for this address from RentCast
+        d.rent = market.rent; d.marketRent = true; d.compCount = market.compCount || 0;
+        d.rentRange = money(market.low) + "–" + money(market.high) + "/mo";
+      }
       var io = Math.round(d.cost * rate / 12);
       var noi = d.rent - opexFor(d.rent, d.cost).total;
       bp = {
@@ -1800,7 +1804,7 @@
       $("o-cost").textContent = money(d.cost);
       $("o-scope").textContent = nb(d.title);
       $("o-rent").textContent = money(d.rent) + " / mo";
-      $("o-annual").textContent = nb(money(d.rent * 12) + " annual gross");
+      $("o-annual").textContent = nb(d.marketRent ? "Nearby rentals: " + d.rentRange : money(d.rent * 12) + " annual gross");
       $("o-pay").textContent = money(bp.io) + " / mo";
       $("o-equity").textContent = "+" + money(d.equity);
       $("o-appraisal").textContent = money(d.appraisal) + " Contributory Value";
@@ -1811,6 +1815,7 @@
       // Carry this project into the calculator and the borrowing check so all three tell the same story
       $("c-rate").value = CONFIG.helocRate;
       useModel(answers.scope, "blueprint");
+      if (d.marketRent) { fitRange($("c-rent"), d.rent); syncAll(); }
     }
 
     // ---------- ROI & HELOC payoff simulator ----------
@@ -2242,11 +2247,30 @@
         parcel_use: pc.use, parcel_units: String(pc.units || ""), parcel_year_built: pc.yearBuilt, parcel_building_sqft: String(pc.buildingSqft || ""), parcel_lot_sqft: String(pc.lotSqft || ""), parcel_legal: pc.legal };
     }
 
+    // ---------- Address-specific rent (RentCast, through our server) ----------
+    // One lookup per submission. Any problem resolves to null and the model rent stays in place.
+    var rentAsk = { key: "", p: null };
+    function rentFor() {
+      var d = scopeData(answers.scope), text = $("addr").value.trim(), g = geoFor($("addr"));
+      if (!d || text.length < 6) return Promise.resolve(null);
+      var garage = /garage/i.test(d.title), sq = d.sqft;
+      var beds = garage ? 0 : sq >= 900 ? 3 : sq >= 600 ? 2 : sq >= 450 ? 1 : 0, baths = !garage && sq >= 900 ? 2 : 1;
+      var key = [text.toLowerCase(), sq, beds, baths].join("|");
+      if (rentAsk.key === key && rentAsk.p) return rentAsk.p;
+      var ctl = "AbortController" in window ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+      rentAsk = { key: key, p: fetch("/api/rent", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: text, lat: g.address_lat || "", lng: g.address_lng || "", bedrooms: beds, bathrooms: baths, sqft: sq }), signal: ctl ? ctl.signal : undefined })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { clearTimeout(t); if (!j || !j.found) rentAsk.p = null; return j && j.found ? j : null; })
+        .catch(function () { clearTimeout(t); rentAsk.p = null; return null; }) };
+      return rentAsk.p;
+    }
+
     // ---------- Feasibility Blueprint PDF ----------
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261110";  // the 5-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261111";  // the 5-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;
@@ -2309,10 +2333,13 @@
     // The PDF is delivered by email only (GHL emails plan_pdf_url); the page never offers a download.
     // Returns extra webhook fields. Never throws: a PDF problem must not lose the lead.
     function preparePlan(btn, who) {
-      btn.textContent = "Checking your parcel...";
-      return within(parcelFor(), 6000).then(function (pc) {
+      btn.textContent = "Checking your parcel and local rents...";
+      return Promise.all([within(parcelFor(), 7000), within(rentFor(), 7000)]).then(function (got) {
+        var pc = got[0], market = got[1];
         PARCEL = pc && pc.residential !== false ? pc : null;  // only homes get parcel facts on the page and in the PDF
-        var extra = parcelFields(pc);
+        computeBlueprint(market);
+        var extra = Object.assign(parcelFields(pc), { rent_source: market ? "rentcast" : "model" });
+        if (market) Object.assign(extra, { est_rent: money(bp.scope.rent), est_rent_range: bp.scope.rentRange, est_net_cash_flow: money(bp.net), est_payoff_time: bp.payoff, rent_comp_count: String(market.compCount || "") });
         btn.textContent = "Generating your blueprint...";
         return loadJsPdf().then(function (JsPDF) {
           var blob = buildPlanPdf(JsPDF, who);

@@ -316,7 +316,7 @@
     (function () {
       var gap = 10, cw = (CW - gap) / 2, ch = 92;
       card(M, cw, ch, C.mist, "Total build cost", money(cost), sqft.toLocaleString("en-US") + " sq ft at $250 per sq ft. Full budget with fees and a cushion is on page 3.", C.deep, 24);
-      card(M + cw + gap, cw, ch, C.greenSoft, "Projected monthly rent", money(rent) + " / mo", "Long-term 12-month lease. " + money(rent * 12) + " a year before costs.", C.green, 24);
+      card(M + cw + gap, cw, ch, C.greenSoft, "Projected monthly rent", money(rent) + " / mo", (d.marketRent ? (d.compCount ? "Based on " + d.compCount + " nearby rentals. " : "Based on nearby rentals. ") : "Long-term 12-month lease. ") + money(rent * 12) + " a year before costs.", C.green, 24);
       y += ch + gap;
       card(M, cw, ch, C.orangeSoft, "Net monthly cash flow", sign(cf1) + " / mo", "Years 1-" + drawY + ", after every cost and the loan payment. About " + sign(cf2) + " a month after that.", C.orangeInk, 24);
       card(M + cw + gap, cw, ch, C.sky, "Day-1 equity gain", sign(equity), "The ADU adds about " + money(appraisal) + " in value once the city signs off.", C.navy, 24);
@@ -485,7 +485,9 @@
       y += bh + 12 * gapK;
     })();
     para("Operating expenses: about " + Math.round(OX.vacancy * 100) + "% for empty months (" + money(ox.vacancy) + "), property tax on the ADU only (" + money(ox.tax) + "), landlord insurance (" + money(ox.insurance) + "), repairs (" + money(ox.repairs) + ") and savings for a roof or AC later (" + money(ox.reserve) + "). The tenant pays electricity and gas on a separate meter.", 8.5, C.muted, "normal", M, CW, 1.35);
-    if (d.rentRange && !tight) para("Rent check: " + plain(d.rentRange) + " is the typical range for a new " + layout.replace(", 1 bath", "").toLowerCase() + " ADU of this size. We confirm it against local rents on the site audit.", 8.5, C.muted, "normal", M, CW, 1.35);
+    if (d.rentRange && !tight) para(d.marketRent
+      ? "Rent check: comparable rentals near this address point to about " + plain(d.rentRange) + " for a unit like this (RentCast estimate). A brand-new unit may rent toward the top of that range. We confirm it on the site audit."
+      : "Rent check: " + plain(d.rentRange) + " is the typical range for a new " + layout.replace(", 1 bath", "").toLowerCase() + " ADU of this size. We confirm it against local rents on the site audit.", 8.5, C.muted, "normal", M, CW, 1.35);
     y += 6 * gapK;
     callout(bothUp
       ? "Stress-tested: drop the rent 10% to " + money(vRent) + " and raise the budget 10% to " + money(vCost) + " at the same time, and the ADU still leaves about " + sign(v1) + " a month in years 1 to " + drawY + " and " + sign(v2) + " after that. Even borrowing the full " + money(cushion) + " budget with cushion leaves about " + sign(cushionCF) + " a month."
