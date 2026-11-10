@@ -1659,6 +1659,7 @@
       // then property tax on the new unit only, landlord insurance, repairs and a roof/AC reserve (yearly share of the build cost)
       opex: { vacancy: 0.04, tax: 0.0125, insurance: 0.004, repairs: 0.0065, reserve: 0.005 },
       googleMapsKey: "AIzaSyCh0b3jIDPM72MjJn2e9guVGLSd1IzGLug",  // public browser key (Maps JavaScript, Places (New), Geocoding), locked in Google Cloud to letstalkadu.com and www.letstalkadu.com; empty = Google features off
+      gaMeasurementId: "",  // Google Analytics 4 ID (G-...); empty = Analytics off. Only runs on letstalkadu.com (or with ?ga_test=1)
       serviceArea: { south: 32.53, west: -119.65, north: 34.90, east: -114.13 } // address suggestions cover the whole US, with LA, Orange, Riverside, San Bernardino, San Diego and Ventura counties ranked first
     };
 
@@ -1668,6 +1669,31 @@
     var SOURCE = "letstalkadu.com landing page";
 
     var $ = function (id) { return document.getElementById(id); };
+
+    // ---------- Google Analytics 4 ----------
+    // Page views plus the events below. Never sends names, phones, emails or addresses.
+    var track = function () {};
+    if (CONFIG.gaMeasurementId && (/(^|\.)letstalkadu\.com$/.test(location.hostname) || /[?&]ga_test=1/.test(location.search))) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", CONFIG.gaMeasurementId, { allow_google_signals: false, allow_ad_personalization_signals: false });
+      var gaScript = document.createElement("script");
+      gaScript.async = true;
+      gaScript.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(CONFIG.gaMeasurementId);
+      document.head.appendChild(gaScript);
+      track = function (name, params) { gtag("event", name, params || {}); };
+    }
+    // Calls, pre-qualification and booking clicks anywhere on the page, with the section they came from
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a[href]");
+      if (!a) return;
+      var href = a.getAttribute("href"), sec = a.closest("section[id], header, footer, nav, .sticky-cta, dialog");
+      var where = sec ? (sec.id || sec.tagName.toLowerCase()) : "page";
+      if (/^tel:/.test(href)) track("click_call", { link_location: where });
+      else if (/avenfoundry\.com/.test(href)) track("click_prequal", { link_location: where });
+      else if (/theradcrm\.com\/widget\/bookings/.test(href)) track("click_booking", { link_location: where });
+    });
     function opexFor(rent, cost) {
       var o = CONFIG.opex, m = function (rate) { return Math.round(cost * rate / 12); };
       var r = { vacancy: Math.round(rent * o.vacancy), tax: m(o.tax), insurance: m(o.insurance), repairs: m(o.repairs), reserve: m(o.reserve) };
@@ -1744,8 +1770,10 @@
       $("wiz-t").innerHTML = step > 3 ? "<b>Done:</b> Your blueprint PDF is on its way to your\u00a0email" : "<b>Step " + step + " of 3:</b> " + WIZ[step - 1].replace(/ (\S+)$/, "\u00a0$1");
       $("wiz-fill").style.width = (step > 3 ? 100 : step / 3 * 100) + "%";
     }
+    var LOT_STEPS = ["", "address", "adu_choice", "contact", "results"];
     function show(step) {
       wizProg(step);
+      track("lot_check_step", { step_number: step, step_name: LOT_STEPS[step] });
       for (var i = 1; i <= 4; i++) $("p" + i).hidden = i !== step;
       for (var j = 1; j <= 3; j++) $("st" + j).className = j === step ? "on" : (j < step || step === 4) ? "done" : "";
       var c = $("feasibility");
@@ -2641,6 +2669,7 @@
             if (a && !a.value && src.value) a.value = src.value;
           });
           clearDraft();
+          track("generate_lead", { form_name: payload.form_name || "", rent_source: payload.rent_source || "", parcel_found: payload.parcel_found || "" });
           opts.done(payload);
         }
         if ($(prefix + "-hp").value) { finish(); return; } // spam trap
@@ -2676,6 +2705,7 @@
               emailEl.focus();
               return;
             }
+            track("lead_form_error", { form: { g: "lot_check", v: "site_walk", m: "popup" }[prefix] || prefix, reason: String((err && err.message) || "error").slice(0, 40) });
             $(prefix + "-err").textContent = "That didn't go through. Please try again, or call (949) 787-2662.";
           });
       });
