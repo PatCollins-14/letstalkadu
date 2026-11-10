@@ -893,7 +893,7 @@
     // Lead delivery: uploads any attached files to Uploadcare, then posts the lead (with file links) to a GoHighLevel
     // inbound webhook. Both values below are public by design: the Uploadcare PUBLIC key can only upload, and the
     // webhook URL can only add data to the CRM. Never put a secret key or API token in this file.
-    var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/jZSKJkOxYCiKBnJvfyoo";
+    var GHL_WEBHOOK_URL = "/api/lead";
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net"; // project CDN address for this public key
     var submitBtn = document.getElementById("submit-btn");
@@ -984,7 +984,7 @@
           attachments_failed: up.failed,
           submitted_at: new Date().toISOString()
         }, utm());
-        var t = withTimeout(15000);
+        var t = withTimeout(40000);
         return fetch(GHL_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

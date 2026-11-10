@@ -102,6 +102,21 @@ async function checkTurnstile(token, secret) {
     return (j["error-codes"] || []).includes("internal-error") ? "unverified" : "failed";
   } catch (e) { return "unverified"; }
 }
+// A short CRM hiccup should not lose a lead: try up to 3 times. A CRM that says the lead itself is bad (4xx) is not retried.
+async function sendToCrm(lead) {
+  let reason = "crm_error";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (attempt > 1) await new Promise((done) => setTimeout(done, (attempt - 1) * 800));
+    try {
+      const r = await timedFetch(GHL_HOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lead) }, 7000);
+      if (r.ok) return { ok: true };
+      reason = "crm_" + r.status;
+      if (r.status < 500 && r.status !== 429) break;
+    } catch (e) { reason = e.name === "AbortError" ? "crm_timeout" : "crm_error"; }
+  }
+  console.error("Lead was not delivered to the CRM after retries:", reason, lead.form_name || "");
+  return { ok: false, reason };
+}
 app.get("/api/lead-config", (req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({ turnstileSiteKey: process.env.TURNSTILE_SECRET_KEY ? process.env.TURNSTILE_SITE_KEY || "" : "" });
@@ -118,13 +133,9 @@ app.post("/api/lead", express.json({ limit: "32kb" }), async (req, res) => {
   const site = process.env.TURNSTILE_SITE_KEY, secret = process.env.TURNSTILE_SECRET_KEY;
   lead.spam_check = site && secret ? await checkTurnstile(String(turnstile_token || ""), secret) : "off";
   if (lead.spam_check === "failed") return res.status(403).json({ ok: false, reason: "spam_check" });
-  try {
-    const r = await timedFetch(GHL_HOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lead) }, 10000);
-    if (!r.ok) return res.status(502).json({ ok: false, reason: "crm_" + r.status });
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(502).json({ ok: false, reason: e.name === "AbortError" ? "crm_timeout" : "crm_error" });
-  }
+  const sent = await sendToCrm(lead);
+  if (sent.ok) return res.json({ ok: true });
+  res.status(502).json({ ok: false, reason: sent.reason });
 });
 
 // ---------- Parcel facts for the Blueprint PDF (free public map services, no key) ----------
@@ -148,8 +159,9 @@ async function gisQuery(url, params, ms) {
     const q = new URLSearchParams(Object.assign({ returnGeometry: "false", f: "json" }, params));
     const r = await fetch(url + "?" + q.toString(), { signal: ctl.signal, headers: { Accept: "application/json" } });
     const j = await r.json();
-    return (j.features || []).map((f) => f.attributes);
-  } catch (e) { return []; } finally { clearTimeout(timer); }
+    if (!r.ok || j.error || !j.features) throw new Error("lookup failed");
+    return j.features.map((f) => f.attributes);
+  } catch (e) { const none = []; none.failed = true; return none; } finally { clearTimeout(timer); }
 }
 const atPoint = (lng, lat, fields) => ({ geometry: lng + "," + lat, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects", outFields: fields || "*" });
 const titleCase = (t) => String(t || "").toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace(/\s+/g, " ").trim();
@@ -194,13 +206,15 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
   if (list.length > 30) return res.json({ found: false, reason: "rate_limited" });
 
   let rows = hasPt ? await gisQuery(GIS.parcel, atPoint(lng, lat, PARCEL_FIELDS)) : [];
+  let lookupFailed = !!rows.failed;
   if (!rows.length) {
     // The pin can land on the street; match the typed address instead (house number + street name + ZIP)
     const p = parseAddress(address);
     if (p) rows = await gisQuery(GIS.parcel, { where: "SitusHouseNo='" + p.house + "' AND SitusStreet LIKE '%" + p.street + "%' AND SitusZIP LIKE '" + p.zip + "%'", outFields: PARCEL_FIELDS, resultRecordCount: "3" });
+    lookupFailed = lookupFailed || !!rows.failed;
   }
   const a = rows[0];
-  if (!a) { const body = { found: false, reason: "no parcel" }; parcelCache.set(key, { at: Date.now(), body }); return res.json(body); }
+  if (!a) { const body = { found: false, reason: lookupFailed ? "lookup_failed" : "no parcel" }; if (!lookupFailed) parcelCache.set(key, { at: Date.now(), body }); return res.json(body); }
   const sum = (f) => [1, 2, 3, 4, 5].reduce((s, i) => s + (Number(a[f + i]) || 0), 0);
   const units = sum("Units"), x = a.CENTER_LON || lng, y = a.CENTER_LAT || lat;
   const taxCity = String(a.TaxRateCity || "").toUpperCase();
@@ -230,7 +244,7 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
     buildingSqft: sum("SQFTmain"), lotSqft: Math.round(Number(a["Shape.STArea()"]) || 0),
     zoning, zoningDesc, cityOfLA: taxCity === "LOS ANGELES"
   };
-  parcelCache.set(key, { at: Date.now(), body }); if (parcelCache.size > 5000) parcelCache.clear();
+  if (![laZ, laH, coZ, comm].some((r) => r.failed)) { parcelCache.set(key, { at: Date.now(), body }); if (parcelCache.size > 5000) parcelCache.clear(); }
   res.json(body);
 });
 

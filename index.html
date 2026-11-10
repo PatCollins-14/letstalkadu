@@ -1093,7 +1093,7 @@
             <div id="g-ts" class="ts-box"></div>
             <span class="err" id="g-err" role="alert"></span>
             <div class="row"><button type="button" class="back" data-next="2">← Back</button><button class="btn btn-primary" type="submit">Generate Instant Feasibility&nbsp;Blueprint</button></div>
-            <p class="fine consent">By clicking Generate Instant Feasibility Blueprint, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
+            <p class="fine consent">By clicking Generate Instant Feasibility Blueprint, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
           </form>
         </div>
 
@@ -1109,7 +1109,7 @@
           </div>
           <div class="plan-sent" role="status">
             <svg width="22" height="22" aria-hidden="true"><use href="#i-mail"/></svg>
-            <p><strong>Your full Feasibility Blueprint PDF is on its way to <span class="ok-email">your&nbsp;email</span>.</strong> Check your inbox in the next few minutes. If it isn't there, check your spam, junk or promotions folder and mark it &ldquo;Not&nbsp;spam&rdquo;.</p>
+            <p id="plan-sent-msg"><strong>Your full Feasibility Blueprint PDF is on its way to <span class="ok-email">your&nbsp;email</span>.</strong> Check your inbox in the next few minutes. If it isn't there, check your spam, junk or promotions folder and mark it &ldquo;Not&nbsp;spam&rdquo;.</p>
           </div>
           <div class="bp-metrics">
             <div class="stat"><span>All-In Turnkey Cost ($250/sq&nbsp;ft)</span><strong id="o-cost">—</strong><em id="o-scope"></em></div>
@@ -1526,7 +1526,7 @@
           <div id="v-ts" class="ts-box"></div>
           <span class="err" id="v-err" role="alert"></span>
           <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Site&nbsp;Walk</button>
-          <p class="fine consent">By clicking Schedule My Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
+          <p class="fine consent">By clicking Schedule My Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
         </form>
         <div class="success" id="visit-ok" hidden>
           <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -1616,7 +1616,7 @@
         <div id="m-ts" class="ts-box"></div>
         <span class="err" id="m-err" role="alert"></span>
         <button class="btn btn-primary" type="submit" style="width:100%" id="m-btn">Schedule My Site&nbsp;Walk</button>
-        <p class="fine consent">By clicking <span id="m-btn-name">Schedule My Site Walk</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
+        <p class="fine consent">By clicking <span id="m-btn-name">Schedule My Site Walk</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
       </form>
       <div class="success" id="m-ok" hidden>
         <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -2662,7 +2662,7 @@
           .then(function (token) {
             btn.textContent = "Sending...";
             var ctl = "AbortController" in window ? new AbortController() : null;
-            timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
+            timer = setTimeout(function () { if (ctl) ctl.abort(); }, 40000);
             return fetch(LEAD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ turnstile_token: token }, payload)), signal: ctl ? ctl.signal : undefined });
           })
           .then(function (res) { clearTimeout(timer); if (!res.ok) throw new Error(res.status); busy = false; btn.disabled = false; btn.innerHTML = label; finish(); })
@@ -2694,9 +2694,10 @@
         };
       },
       prepare: function (btn, who) { return preparePlan(btn, who); },
-      done: function () {
+      done: function (lead) {
         renderBlueprint();
         Array.prototype.forEach.call(document.querySelectorAll(".ok-email"), function (s) { s.textContent = $("g-email").value.trim().toLowerCase(); });
+        if (lead && !lead.plan_pdf_url) $("plan-sent-msg").innerHTML = "<strong>We have your request, but your PDF didn't generate this&nbsp;time.</strong> Your numbers are below, and our team will follow up with your Blueprint. Questions? Call (949)&nbsp;787-2662.";
         show(4);
         $("o-addr").focus({ preventScroll: true });
       }
