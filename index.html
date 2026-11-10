@@ -611,6 +611,14 @@
     .bp-head .snap-title { color: #fff; font-size: 24px; margin: 10px 0 4px; }
     .bp-head p { margin: 0; color: #cfdaf0; font-size: 13.5px; }
     .o-parcel { margin: 4px 0 2px; font-weight: 700; color: var(--navy-deep); font-size: 15px; }
+    .rent-notice { display: flex; gap: 12px; align-items: flex-start; padding: 18px 20px; border: 2px solid var(--orange); border-radius: 14px; background: var(--orange-soft); color: var(--navy-deep); }
+    .rent-notice svg { flex: none; margin-top: 1px; color: var(--orange-ink); }
+    .rent-notice strong { display: block; font-size: 17px; line-height: 1.3; margin-bottom: 6px; }
+    .rent-notice p { margin: 0; font-size: 15px; line-height: 1.5; }
+    .bp-rent { margin: 16px 26px 18px; }
+    .calc-out .rent-notice { margin-top: 14px; }
+    .hint.rent-hint { margin-top: -6px; font-weight: 700; color: var(--orange-ink); }
+    @media (max-width: 640px) { .bp-rent { margin: 14px 18px 16px; } .rent-notice { padding: 16px; } .rent-notice strong { font-size: 16px; } }
     .plan-sent { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 16px 26px; background: var(--sky); border-bottom: 1px solid var(--line); color: var(--navy-deep); }
     .plan-sent svg { flex: none; margin-top: 2px; color: var(--navy); }
     .plan-sent p { margin: 0; font-size: 15px; line-height: 1.5; text-wrap: pretty; }
@@ -1027,6 +1035,7 @@
         <div class="panel" id="p2" hidden>
           <p class="q" tabindex="-1">Select Your Preferred ADU&nbsp;Model</p>
           <p class="hint">All configurations are evaluated against California state standards and $250/sq ft turnkey build&nbsp;rates.</p>
+          <p class="hint rent-hint">Rent figures are estimates, not&nbsp;guarantees.</p>
           <div class="scopes" role="group" aria-label="ADU model" data-group="scope">
             <button type="button" class="scope" data-v="garage_400" aria-pressed="true">
               <span class="badge">Fastest Payoff</span>
@@ -1108,6 +1117,7 @@
             <div class="stat warm"><span>Estimated HELOC Payment&nbsp;(8.0%)</span><strong id="o-pay">—</strong><em>5-Yr Interest-Only&nbsp;Draw</em></div>
             <div class="stat cool"><span>Immediate Day-1 Equity&nbsp;Pop</span><strong id="o-equity">—</strong><em id="o-appraisal"></em></div>
           </div>
+          <div class="bp-rent"><div class="rent-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Important: Rent Figures Are Estimates, Not&nbsp;Guarantees</strong><p>The rent shown is an automated estimate from nearby rental listings supplied by a third-party data service, or from our pricing model. It is not an appraisal, a rental analysis or a promise of any rent, income, occupancy or tenant. Actual rent depends on your unit, its condition, the market, timing and local rent rules. The cash flow, payoff and equity figures rely on this estimate and can change. A lender may not count projected rent as&nbsp;income.</p></div></div></div>
           <ul class="bp-checks">
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>State Setbacks:</strong> 4-foot rear &amp; side setbacks&nbsp;compliant.</span></li>
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Payoff Speed (100% Net Rent):</strong> <span class="o" id="o-payoff">—</span></span></li>
@@ -1304,6 +1314,7 @@
             <div><span>Estimated Monthly&nbsp;Payment</span><strong id="r-io">—</strong><em>Interest-only, years&nbsp;1&#8209;5</em></div>
             <div><span>Monthly Cash&nbsp;Flow</span><strong id="r-net">—</strong><em>Rent after costs and the&nbsp;payment</em></div>
           </div>
+          <div class="rent-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Important: Rent Figures Are Estimates, Not&nbsp;Guarantees</strong><p>Rent, cash flow and payoff here are estimates for planning only. We don't guarantee any rent, income or occupancy. Actual results depend on your unit, the market and local rent&nbsp;rules.</p></div></div>
           <p class="calc-line" id="calc-line"></p>
           <div class="prequal">
             <p><strong>Want to run this specifically on your&nbsp;parcel?</strong>Our in-house lending specialists will pull your primary mortgage balance and structure a custom zero-down&nbsp;HELOC.</p>
@@ -2274,7 +2285,7 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261111";  // the 5-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261112";  // the 5-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;

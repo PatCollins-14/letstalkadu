@@ -151,7 +151,7 @@
     }
     function table(widths, rows, opts) {
       opts = opts || {};
-      var pad = 7, size = opts.size || 9, lh = size * 1.3;
+      var pad = opts.pad || 7, size = opts.size || 9, lh = size * 1.3;
       var hl = function (ri) { return opts.highlightLast && ri === rows.length - 1; };
       y += 2;
       rows.forEach(function (r, ri) {
@@ -316,7 +316,7 @@
     (function () {
       var gap = 10, cw = (CW - gap) / 2, ch = 92;
       card(M, cw, ch, C.mist, "Total build cost", money(cost), sqft.toLocaleString("en-US") + " sq ft at $250 per sq ft. Full budget with fees and a cushion is on page 3.", C.deep, 24);
-      card(M + cw + gap, cw, ch, C.greenSoft, "Projected monthly rent", money(rent) + " / mo", (d.marketRent ? (d.compCount ? "Based on " + d.compCount + " nearby rentals. " : "Based on nearby rentals. ") : "Long-term 12-month lease. ") + money(rent * 12) + " a year before costs.", C.green, 24);
+      card(M + cw + gap, cw, ch, C.greenSoft, "Estimated monthly rent", money(rent) + " / mo", (d.marketRent ? (d.compCount ? "Based on " + d.compCount + " nearby rentals. " : "Based on nearby rentals. ") : "Long-term 12-month lease. ") + "An estimate, not a guarantee.", C.green, 24);
       y += ch + gap;
       card(M, cw, ch, C.orangeSoft, "Net monthly cash flow", sign(cf1) + " / mo", "Years 1-" + drawY + ", after every cost and the loan payment. About " + sign(cf2) + " a month after that.", C.orangeInk, 24);
       card(M + cw + gap, cw, ch, C.sky, "Day-1 equity gain", sign(equity), "The ADU adds about " + money(appraisal) + " in value once the city signs off.", C.navy, 24);
@@ -328,18 +328,19 @@
       : "Bottom line: at today's example rate, the rent does not fully cover the costs and the loan payment in years 1 to " + drawY + ". Page 3 shows the gap, and the site audit is where we look for a size or financing setup that closes it.",
       C.orangeSoft, C.orange, [90, 58, 0]);
 
+    callout("Rent notice: every rent figure here is an estimate, not a guarantee. See page 3.", C.orangeSoft, C.orange, [90, 58, 0]);
     sub("Inside this blueprint");
     y += 4;
     [["2", "Lot suitability & concept floor plan", pc ? "Parcel facts, setbacks and a " + sqft.toLocaleString("en-US") + " sq ft layout" : "Your project, the rules that apply and a sample layout"],
      ["3", "Build budget & cash-flow architecture", "Every cost, the HELOC and what you keep each month"],
      ["4", "Equity creation & valuation upside", "What the ADU adds to the property's value"],
      ["5", "What we verify on site", "The four checks that make it buildable, and how to book them"]].forEach(function (row) {
-      fill(C.mist); doc.roundedRect(M, y, CW, 26, 6, 6, "F");
-      fill(C.navy); doc.circle(M + 15, y + 13, 8.5, "F");
-      font("bold", 9, C.white); doc.text(row[0], M + 15, y + 16.3, { align: "center" });
-      font("bold", 10, C.deep); doc.text(row[1], M + 32, y + 16.8);
-      font("normal", 9, C.muted); doc.text(row[2], W - M - 12, y + 16.8, { align: "right" });
-      y += 30;
+      fill(C.mist); doc.roundedRect(M, y, CW, 22, 6, 6, "F");
+      fill(C.navy); doc.circle(M + 15, y + 11, 7.5, "F");
+      font("bold", 8.5, C.white); doc.text(row[0], M + 15, y + 14, { align: "center" });
+      font("bold", 10, C.deep); doc.text(row[1], M + 32, y + 14.6);
+      font("normal", 9, C.muted); doc.text(row[2], W - M - 12, y + 14.6, { align: "right" });
+      y += 25;
     });
     (function () {
       var bh = 46, by = BOTTOM - bh;
@@ -427,7 +428,7 @@
 
     // ================= PAGE 3: BUILD BUDGET & CASH-FLOW ARCHITECTURE =================
     // Drawn normally first; if a long intro makes it overflow, the page is deleted and drawn again tighter
-    var page3 = function (tight) {
+    var page3 = function (tight, shortNote) {
     var gapK = tight ? 0.5 : 1;
     newPage();
     var payNote = pay === "Cash on Hand" ? " You picked cash, so you may not need a loan; this shows the HELOC route in case you'd rather keep your cash."
@@ -442,7 +443,7 @@
       ["Sewer and power connection fees", "About " + money(utilities), "Estimate: $1,000 to $15,000"],
       ["Cushion for surprises (5%)", money(contingency), "Recommended"],
       ["Total with cushion", money(cushion), d.impactExempt ? "If none of these are included" : "Plus any city impact fees"]
-    ], { boldFirst: true, highlightLast: true, right: [1] });
+    ], { boldFirst: true, highlightLast: true, right: [1], pad: tight ? 4 : 5 });
     y += 4 * gapK;
     sub("How the HELOC pays for it");
     y += 8 * gapK;
@@ -485,9 +486,19 @@
       y += bh + 12 * gapK;
     })();
     para("Operating expenses: about " + Math.round(OX.vacancy * 100) + "% for empty months (" + money(ox.vacancy) + "), property tax on the ADU only (" + money(ox.tax) + "), landlord insurance (" + money(ox.insurance) + "), repairs (" + money(ox.repairs) + ") and savings for a roof or AC later (" + money(ox.reserve) + "). The tenant pays electricity and gas on a separate meter.", 8.5, C.muted, "normal", M, CW, 1.35);
-    if (d.rentRange && !tight) para(d.marketRent
-      ? "Rent check: comparable rentals near this address point to about " + plain(d.rentRange) + " for a unit like this (RentCast estimate). A brand-new unit may rent toward the top of that range. We confirm it on the site audit."
-      : "Rent check: " + plain(d.rentRange) + " is the typical range for a new " + layout.replace(", 1 bath", "").toLowerCase() + " ADU of this size. We confirm it against local rents on the site audit.", 8.5, C.muted, "normal", M, CW, 1.35);
+    (function () {
+      var basis = d.marketRent ? "Comparable rentals near this address point to about " + plain(d.rentRange) + " (RentCast estimate)." : (d.rentRange ? plain(d.rentRange) + " is a typical range for a new ADU of this size." : "");
+      var txt = (basis ? basis + " " : "") + (shortNote
+        ? "This is not a guarantee of rent, income or occupancy, and the cash flow above relies on it."
+        : "This is an automated estimate, not an appraisal, a rental analysis or a guarantee of rent, income or occupancy. Actual rent depends on the unit, the market and local rent rules, the cash flow above relies on it, and a lender may not count projected rent as income.");
+      var head = "IMPORTANT: RENT IS AN ESTIMATE, NOT A GUARANTEE";
+      font("normal", 9, C.ink); var lines = wrap(txt, CW - 28), bh = 25 + lines.length * 11.8 + 9;
+      fill(C.orangeSoft); stroke(C.orange); doc.setLineWidth(1.4); doc.roundedRect(M, y, CW, bh, 7, 7, "FD"); doc.setLineWidth(0.6);
+      font("bold", 10, [90, 58, 0]); doc.text(head, M + 14, y + 17);
+      font("normal", 9, C.ink); doc.text(lines, M + 14, y + 32, { lineHeightFactor: 1.31 });
+      y += bh + 8 * gapK;
+      budget("rent notice");
+    })();
     y += 6 * gapK;
     callout(bothUp
       ? "Stress-tested: drop the rent 10% to " + money(vRent) + " and raise the budget 10% to " + money(vCost) + " at the same time, and the ADU still leaves about " + sign(v1) + " a month in years 1 to " + drawY + " and " + sign(v2) + " after that. Even borrowing the full " + money(cushion) + " budget with cushion leaves about " + sign(cushionCF) + " a month."
@@ -498,7 +509,12 @@
     catch (e) {
       if (!/page 3/.test(e.message)) throw e;
       doc.deletePage(pageNo); pageNo--;
-      page3(true);
+      try { page3(true, false); }
+      catch (e2) {
+        if (!/page 3/.test(e2.message)) throw e2;
+        doc.deletePage(pageNo); pageNo--;
+        page3(true, true);
+      }
     }
 
     // ================= PAGE 4: EQUITY CREATION & VALUATION UPSIDE =================
@@ -651,7 +667,7 @@
       doc.setPage(p);
       stroke(C.line); doc.setLineWidth(0.6); doc.line(M, FOOT_TOP, W - M, FOOT_TOP);
       font("normal", 6.3, C.muted);
-      doc.text(wrap("Estimates for planning only, not a quote, bid, appraisal, zoning decision or loan offer. " + rateP.toFixed(2) + "% is an example rate, not an APR; HELOC rates are usually variable. A HELOC is secured by your home. Loans by E Mortgage Capital Inc., NMLS #1416824. Pat Collins, NMLS #1628553, DRE #02143449. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Construction by Mars Construction Industries Corp, CSLB #1138550. Equal Housing Opportunity.", CW - 52), M, FOOT_TOP + 10, { lineHeightFactor: 1.3 });
+      doc.text(wrap("Estimates for planning only, not a quote, bid, appraisal, zoning decision or loan offer. Rent is not guaranteed. " + rateP.toFixed(2) + "% is an example rate, not an APR; HELOC rates are usually variable. A HELOC is secured by your home. Loans by E Mortgage Capital Inc., NMLS #1416824. Pat Collins, NMLS #1628553, DRE #02143449. Not a commitment to lend; all loans subject to credit, income, property and underwriting approval. Construction by Mars Construction Industries Corp, CSLB #1138550. Equal Housing Opportunity.", CW - 52), M, FOOT_TOP + 10, { lineHeightFactor: 1.3 });
       font("bold", 7, C.muted); doc.text(p + " / " + n, W - M, FOOT_TOP + 10, { align: "right" });
     }
     doc.setProperties({ title: "ADU Feasibility & Financing Blueprint - " + addr, author: "Let's Talk ADU", subject: title });
