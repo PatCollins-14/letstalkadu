@@ -674,8 +674,90 @@
     return doc;
   }
 
+  // ---------------- Condo / townhome property review (1 page, no ADU numbers) ----------------
+  //   buildCondoPdf(jsPDF, { name, address, logo, date }) -> jsPDF document (exactly 1 page, or it throws)
+  function buildCondo(JsPDF, input) {
+    input = input || {};
+    var doc = new JsPDF({ unit: "pt", format: "letter", compress: true });
+    var W = 612, H = 792, M = 48, CW = W - 2 * M, FOOT_TOP = H - 64, BOTTOM = FOOT_TOP - 10, y = 0;
+    function fill(c) { doc.setFillColor(c[0], c[1], c[2]); }
+    function font(style, size, c) { doc.setFont("helvetica", style); doc.setFontSize(size); c = c || C.ink; doc.setTextColor(c[0], c[1], c[2]); }
+    function plain(t) { return String(t).replace(/\u00a0/g, " ").replace(/•/g, "·").replace(/[–—−]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, "\""); }
+    function wrap(t, width) { return doc.splitTextToSize(plain(t), width); }
+    function budget(label) { if (y > BOTTOM + 0.5) throw new Error("Property review overflows at " + label); }
+    function fitSize(t, maxW, size, min) { doc.setFontSize(size); while (doc.getTextWidth(plain(t)) > maxW && size > min) { size -= 0.25; doc.setFontSize(size); } return size; }
+    function para(t, size, c, style) {
+      size = size || 10.5; font(style || "normal", size, c);
+      var lines = wrap(t, CW), lh = size * 1.42;
+      y += size + 1; doc.text(lines, M, y, { lineHeightFactor: 1.42 }); y += (lines.length - 1) * lh + 7;
+      budget("text");
+    }
+    function section(t) { y += 12; fill(C.orange); doc.rect(M, y - 10, 4, 13, "F"); font("bold", 13, C.deep); doc.text(plain(t), M + 12, y + 1); y += 6; }
+    function callout(lead, t, bg, bar, ink) {
+      font("normal", 10, ink);
+      var leadW = (function () { font("bold", 10, ink); return doc.getTextWidth(lead + " "); })();
+      font("normal", 10, ink);
+      var first = doc.splitTextToSize(plain(t), CW - 32 - leadW)[0] || "";
+      var rest = wrap(plain(t).slice(first.length).trim(), CW - 32);
+      var h = (1 + (rest[0] ? rest.length : 0)) * 14.2 + 20;
+      fill(bg); doc.roundedRect(M, y, CW, h, 8, 8, "F"); fill(bar); doc.rect(M, y, 4, h, "F");
+      font("bold", 10, ink); doc.text(lead, M + 16, y + 17);
+      font("normal", 10, ink); doc.text(first, M + 16 + leadW, y + 17);
+      if (rest[0]) doc.text(rest, M + 16, y + 17 + 14.2, { lineHeightFactor: 1.42 });
+      y += h + 10; budget("callout");
+    }
+    var date = input.date || new Date();
+    var today = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    var who = plain(input.name || "").trim(), first = who.split(/\s+/)[0] || "";
+    var addr = plain(input.address || "Your property").trim();
+
+    fill(C.navy); doc.rect(0, 0, W, 104, "F");
+    if (input.logo && input.logo.url) {
+      try { doc.addImage(input.logo.url, "PNG", M, 24, 56 * (input.logo.ratio || 1.5), 56, undefined, "FAST"); } catch (e) { /* the logo is optional */ }
+    }
+    font("bold", 21, C.white); doc.text("Property Review", W - M, 50, { align: "right" });
+    var prep = (who ? "Prepared for " + who + " · " : "Prepared ") + today + " · www.letstalkadu.com";
+    font("normal", 10, C.paleNavy); fitSize(prep, CW - 200, 10, 7.5); doc.text(prep, W - M, 70, { align: "right" });
+
+    y = 132;
+    var badge = "CONDO / TOWNHOME · HOA PROPERTY";
+    font("bold", 8.5); var bw = doc.getTextWidth(badge) + 24;
+    fill(C.orange); doc.roundedRect(M, y - 12, bw, 18, 9, 9, "F");
+    font("bold", 8.5, C.white); doc.text(badge, M + bw / 2, y, { align: "center" });
+    y += 28;
+    font("bold", 18, C.deep); var as = fitSize(addr, CW, 18, 11);
+    if (doc.getTextWidth(addr) > CW) { var al = doc.splitTextToSize(addr, CW).slice(0, 2); doc.text(al, M, y, { lineHeightFactor: 1.15 }); y += (al.length - 1) * as * 1.15; }
+    else doc.text(addr, M, y);
+    y += 14;
+
+    para((first ? "Hi " + first + ", t" : "T") + "hank you for asking us to review your property for an accessory dwelling unit (ADU). We looked at the property type you selected, and we want to give you a clear and honest answer.", 10.5, C.ink);
+    y += 4;
+    callout("Our finding:", "we're unable to move forward with an ADU at this address. Condominiums and townhomes are part of a homeowners association (HOA). The land around your home is usually shared with your neighbors, and any new structure on it needs the HOA's written approval under its governing documents (CC&Rs). Because of that, we can't prepare ADU plans, pricing, rent estimates or financing for this property.", C.orangeSoft, C.orange, [90, 58, 0]);
+
+    section("How we can still help");
+    para("Many condo and townhome owners choose to improve the home they already have. Mars Construction can help you plan a renovation, such as a kitchen or bath remodel, new flooring or an updated layout. Work inside your home may also need HOA approval, so we'll help you confirm what's required before anything begins.", 10.5, C.ink);
+    y += 2;
+    callout("A second look:", "if your townhome sits on its own lot that you own outright, with no HOA and no shared land, it may qualify for an ADU after all. Let us know and we'll gladly take another look.", C.sky, C.navy, C.deep);
+
+    section("Your next step");
+    para("Call or text Pat Collins at " + PHONE + " to talk through renovation ideas or ask any question. You can also reply to the email this review came with.", 10.5, C.ink);
+    para("Thank you for considering Let's Talk ADU. We appreciate the chance to help.", 10.5, C.ink);
+    y += 18;
+    font("bold", 11, C.deep); doc.text("Pat Collins", M, y); y += 14;
+    font("normal", 10, C.muted); doc.text("Let's Talk ADU · " + PHONE, M, y);
+    budget("signature");
+
+    doc.setDrawColor(C.line[0], C.line[1], C.line[2]); doc.setLineWidth(0.6); doc.line(M, FOOT_TOP, W - M, FOOT_TOP);
+    font("normal", 6.6, C.muted);
+    doc.text(wrap("This review is general information about property types. It is not legal advice, a review of your HOA's documents, a quote or a bid. Design, permits and construction by Mars Construction Industries Corp, CSLB #1138550. Loans offered by E Mortgage Capital Inc., NMLS #1416824. Pat Collins NMLS #1628553, CA DRE #02143449.", CW), M, FOOT_TOP + 11, { lineHeightFactor: 1.35 });
+    if (doc.getNumberOfPages() !== 1) throw new Error("Property review must be 1 page");
+    doc.setProperties({ title: "Property Review - " + addr, author: "Let's Talk ADU", subject: "Condo / townhome property review" });
+    return doc;
+  }
+
+  build.condo = buildCondo;
   build.PLANS = PLANS;
   build.BOOKING_URL = BOOKING_URL;
   if (typeof module !== "undefined" && module.exports) module.exports = build;
-  else root.buildBlueprintPdf = build;
+  else { root.buildBlueprintPdf = build; root.buildCondoPdf = buildCondo; }
 })(typeof window !== "undefined" ? window : this);

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://letstalkadu.com/</loc>
+    <loc>https://www.letstalkadu.com/</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
-    <image:image><image:loc>https://letstalkadu.com/img/ba/backyard-after.jpg</image:loc><image:title>Detached backyard ADU, before and after (AI illustration)</image:title></image:image>
-    <image:image><image:loc>https://letstalkadu.com/img/ba/garage-after.jpg</image:loc><image:title>Garage conversion ADU, before and after (AI illustration)</image:title></image:image>
-    <image:image><image:loc>https://letstalkadu.com/img/ba/attached-garage-after.jpg</image:loc><image:title>Attached garage converted to an ADU, before and after (AI illustration)</image:title></image:image>
-    <image:image><image:loc>https://letstalkadu.com/img/ba/jadu-after.jpg</image:loc><image:title>Junior ADU, before and after (AI illustration)</image:title></image:image>
-    <image:image><image:loc>https://letstalkadu.com/img/gallery/modern-sm.jpg</image:loc><image:title>Modern detached ADU (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://www.letstalkadu.com/img/ba/backyard-after.jpg</image:loc><image:title>Detached backyard ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://www.letstalkadu.com/img/ba/garage-after.jpg</image:loc><image:title>Garage conversion ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://www.letstalkadu.com/img/ba/attached-garage-after.jpg</image:loc><image:title>Attached garage converted to an ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://www.letstalkadu.com/img/ba/jadu-after.jpg</image:loc><image:title>Junior ADU, before and after (AI illustration)</image:title></image:image>
+    <image:image><image:loc>https://www.letstalkadu.com/img/gallery/modern-sm.jpg</image:loc><image:title>Modern detached ADU (AI illustration)</image:title></image:image>
   </url>
 </urlset>

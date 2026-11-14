@@ -26,10 +26,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Send www to the main domain
+// www.letstalkadu.com is the main address (since 2026-11-14). Page loads on the bare domain move to www.
+// /api calls are left alone: a redirected POST arrives as a GET, and a lead could be lost on a cached old page.
 app.use((req, res, next) => {
   const host = (req.headers.host || "").toLowerCase();
-  if (host.startsWith("www.")) return res.redirect(301, "https://" + host.slice(4) + req.originalUrl);
+  if (host === "letstalkadu.com" && (req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api/")) {
+    res.set("Cache-Control", "public, max-age=3600");
+    return res.redirect(301, "https://www.letstalkadu.com" + req.originalUrl);
+  }
   next();
 });
 

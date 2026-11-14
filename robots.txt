@@ -32,4 +32,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://letstalkadu.com/sitemap.xml
+Sitemap: https://www.letstalkadu.com/sitemap.xml
