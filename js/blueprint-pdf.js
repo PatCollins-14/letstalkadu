@@ -10,6 +10,7 @@
  *     parcel,                        // optional, from /api/parcel: { apn, neighborhood, legal, jurisdiction, cityOfLA, zoning, zoningDesc, use, units, beds, baths, yearBuilt, buildingSqft, lotSqft }
  *     place,                         // optional, from Google: { city, neighborhood }
  *     logo,                          // optional { url: "data:image/png;base64,...", ratio: w / h }
+ *     hoa,                           // optional true when the owner says the property is in an HOA or PUD
  *     date                           // optional Date
  *   }) -> jsPDF document (exactly 5 pages, or it throws)
  *
@@ -387,6 +388,7 @@
       });
       y += 2 * th + gap + 10;
     })();
+    if (input.hoa) callout("HOA / PUD: you told us this property is part of an HOA or PUD. California law (Civil Code §4751) generally keeps an HOA from banning or unreasonably restricting an ADU on a single-family lot, PUDs included. Your HOA can still set reasonable rules, such as design review, construction hours and rental terms, so we'll review your CC&Rs and approval steps with you before design. Not legal advice.", C.sky, C.navy, C.deep);
     sub("Why this lot works");
     y += 6;
     (function () {

@@ -600,7 +600,14 @@
     .cust-n { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
     .cust-n.bad, .c-sqft-n.bad { color: #b42318; font-weight: 600; }
     .c-custom { margin: -6px 0 18px; display: grid; grid-template-columns: auto 180px 1fr; gap: 6px 12px; align-items: center; }
-    .c-custom[hidden], .chips[hidden] { display: none; }
+    .c-custom[hidden], .chips[hidden], .hoa-check[hidden] { display: none; }
+    .hoa-check { display: flex; gap: 12px; align-items: flex-start; margin: 2px 0 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); cursor: pointer; }
+    .hoa-check input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--navy); cursor: pointer; }
+    .hoa-check strong { display: block; font-size: 15px; line-height: 1.4; color: var(--navy-deep); }
+    .hoa-check small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+    .hoa-check:has(input:checked) { border-color: var(--navy); background: var(--sky); }
+    .rent-notice.hoa-notice { border-color: var(--navy); background: var(--sky); }
+    .rent-notice.hoa-notice svg { color: var(--navy); }
     .c-custom label { margin: 0; }
     .c-custom .sc-box input { min-height: 44px; padding: 9px 12px; font-size: 16px; }
     .c-sqft-n { font-size: 13px; color: var(--muted); }
@@ -1095,6 +1102,7 @@
               <div class="field"><label for="g-email" id="g-email-l">Email (your Blueprint PDF goes&nbsp;here)</label><input id="g-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="john@example.com"><span class="err" id="g-email-err"></span></div>
             </div>
             <div class="hp" aria-hidden="true"><label for="g-hp">Leave empty</label><input id="g-hp" type="text" tabindex="-1" autocomplete="off"></div>
+            <label class="hoa-check" id="hoa-box" for="g-hoa"><input type="checkbox" id="g-hoa" name="hoa_pud"><span><strong>This property is part of an HOA or a planned unit development&nbsp;(PUD)</strong><small>Condo or attached townhome? Choose Condo / Townhome as the property type in step&nbsp;1.</small></span></label>
             <div id="g-ts" class="ts-box"></div>
             <span class="err" id="g-err" role="alert"></span>
             <div class="row"><button type="button" class="back" data-next="2">← Back</button><button class="btn btn-primary" type="submit" id="g-submit">Generate Instant Feasibility&nbsp;Blueprint</button></div>
@@ -1141,6 +1149,7 @@
             <div class="stat cool"><span>Immediate Day-1 Equity&nbsp;Pop</span><strong id="o-equity">—</strong><em id="o-appraisal"></em></div>
           </div>
           <div class="bp-rent"><div class="rent-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Important: Rent Figures Are Estimates, Not&nbsp;Guarantees</strong><p>The rent shown is an automated estimate from nearby rental listings supplied by a third-party data service, or from our pricing model. It is not an appraisal, a rental analysis or a promise of any rent, income, occupancy or tenant. Actual rent depends on your unit, its condition, the market, timing and local rent rules. The cash flow, payoff and equity figures rely on this estimate and can change. A lender may not count projected rent as&nbsp;income.</p></div></div></div>
+          <div class="bp-rent" id="o-hoa" hidden><div class="rent-notice hoa-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Your Property Is in an HOA or&nbsp;PUD</strong><p>California law (Civil Code §4751) generally stops an HOA from banning or unreasonably restricting an ADU or junior ADU on a single-family lot, and that includes planned unit developments (PUDs). Your HOA can still set reasonable rules, such as architectural review of materials, colors and roofline, construction hours, contractor insurance and rental terms like a 30-day minimum. Before design starts, we'll review your CC&amp;Rs and the HOA's approval steps with you, which can affect timing, design and cost. This is general information, not legal&nbsp;advice.</p></div></div></div>
           <ul class="bp-checks">
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>State Setbacks:</strong> 4-foot rear &amp; side setbacks&nbsp;compliant.</span></li>
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Payoff Speed (100% Net Rent):</strong> <span class="o" id="o-payoff">—</span></span></li>
@@ -1795,6 +1804,7 @@
       if (!$("g-submit").disabled) $("g-submit").innerHTML = c ? "Send My Property&nbsp;Review" : GATE_TEXT.btn;
       $("g-btn-name").textContent = c ? "Send My Property Review" : GATE_TEXT.name;
       $("pay-box").hidden = c;
+      $("hoa-box").hidden = c;
     }
     $("ptype").addEventListener("change", condoMode);
     bindGroup("pay");
@@ -2361,7 +2371,7 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261114";  // the 5-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261117";  // the 5-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;
@@ -2402,7 +2412,7 @@
     function buildPlanPdf(JsPDF, who) {
       var doc = window.buildBlueprintPdf(JsPDF, {
         name: who.name, address: who.address, ptype: answers.ptype, pay: answers.pay,
-        scope: bp.scope, config: CONFIG, logo: logoDataUrl(), parcel: PARCEL,
+        scope: bp.scope, config: CONFIG, logo: logoDataUrl(), parcel: PARCEL, hoa: $("g-hoa").checked,
         place: { city: geoFor($("addr")).address_city || "", neighborhood: geoFor($("addr")).address_neighborhood || "" }
       });
       return doc.output("blob");
@@ -2772,11 +2782,11 @@
     // Step 3: generate the blueprint, send the lead, then show the results
     wire("g", $("gate"), {
       extra: function () {
-        if (isCondo()) return { form_name: "Condo / townhome review", address: $("addr").value.trim(), property_type: answers.ptype };
+        if (isCondo()) return { form_name: "Condo / townhome review", address: $("addr").value.trim(), property_type: answers.ptype, hoa_pud: "Yes (condo / townhome)" };
         computeBlueprint();
         var d = bp.scope;
         return {
-          form_name: "Lot check snapshot", address: $("addr").value.trim(), property_type: answers.ptype, adu_goal: answers.goal,
+          form_name: "Lot check snapshot", address: $("addr").value.trim(), property_type: answers.ptype, adu_goal: answers.goal, hoa_pud: $("g-hoa").checked ? "Yes" : "No",
           adu_type: d.title, adu_size: d.title, adu_sqft: d.sqft, financing_preference: answers.pay,
           est_cost_range: money(d.cost), est_rent_range: d.rentRange, est_rent: money(d.rent),
           est_heloc_payment_io: money(bp.io), est_net_cash_flow: money(bp.net), est_payoff_time: bp.payoff,
@@ -2795,6 +2805,7 @@
           return;
         }
         renderBlueprint();
+        $("o-hoa").hidden = !$("g-hoa").checked;
         Array.prototype.forEach.call(document.querySelectorAll(".ok-email"), function (s) { s.textContent = $("g-email").value.trim().toLowerCase(); });
         if (lead && !lead.plan_pdf_url) $("plan-sent-msg").innerHTML = "<strong>We have your request, but your PDF didn't generate this&nbsp;time.</strong> Your numbers are below, and our team will follow up with your Blueprint. Questions? Call (949)&nbsp;787-2662.";
         show(4);
