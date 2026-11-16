@@ -388,7 +388,7 @@
       });
       y += 2 * th + gap + 10;
     })();
-    if (input.hoa) callout("HOA / PUD: your HOA may have rules about adding an ADU, and it might not allow one. Before we start, we'll check with you whether your HOA allows it and what approval it needs.", C.sky, C.navy, C.deep);
+    if (input.hoa) callout("HOA / PUD: your HOA may have rules about adding an ADU, and it might not allow one. Before you move forward, please check with your HOA whether it allows an ADU and what approval you need.", C.sky, C.navy, C.deep);
     sub("Why this lot works");
     y += 6;
     (function () {
