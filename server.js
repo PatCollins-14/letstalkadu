@@ -246,9 +246,75 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
     legal: legalName(a.LegalDescription), use: useName(a.UseDescription, units), useType: a.UseType || "",
     units, beds: sum("Bedrooms"), baths: sum("Bathrooms"), yearBuilt: /^\d{4}$/.test(year) && year !== "0000" ? year : "",
     buildingSqft: sum("SQFTmain"), lotSqft: Math.round(Number(a["Shape.STArea()"]) || 0),
-    zoning, zoningDesc, cityOfLA: taxCity === "LOS ANGELES"
+    zoning, zoningDesc, cityOfLA: taxCity === "LOS ANGELES",
+    lat: Number(y) || "", lng: Number(x) || ""  // the parcel's center, for the slope check
   };
   if (![laZ, laH, coZ, comm].some((r) => r.failed)) { parcelCache.set(key, { at: Date.now(), body }); if (parcelCache.size > 5000) parcelCache.clear(); }
+  res.json(body);
+});
+
+// ---------- Ground slope around the home (USGS 3DEP elevation, free, no key) ----------
+// Nine bare-earth elevation points: the home and a ring 15 m (about 50 ft) around it. A plane fit through them
+// gives the general grade of the ground, which the PDF's lot fit check uses (a steep yard makes a detached ADU
+// costly or impractical). Coordinates come from the page (Google or the parcel record), or the free US Census
+// geocoder when the page has none. Any failure answers found:false and the PDF says the slope wasn't measured.
+const EPQS_URL = process.env.EPQS_URL || "https://epqs.nationalmap.gov/v1/json";
+const CENSUS_URL = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress";
+const siteCache = new Map();  // rounded lat,lng -> { at, body }, 30 days
+const siteHits = new Map();   // ip -> timestamps, 30 lookups per 10 minutes
+async function getJson(url, ms) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(url, { signal: ctl.signal, headers: { Accept: "application/json" } }); return r.ok ? await r.json() : null; }
+  catch (e) { return null; } finally { clearTimeout(timer); }
+}
+async function groundFt(lat, lng) {
+  const j = await getJson(EPQS_URL + "?x=" + lng.toFixed(7) + "&y=" + lat.toFixed(7) + "&wkid=4326&units=Feet&includeDate=false", 12000);
+  const raw = j && j.value;  // null when USGS has no reading; Number(null) would wrongly be 0 ft
+  const v = raw === null || raw === undefined || raw === "" ? NaN : Number(raw);
+  return isFinite(v) && v > -500 && v < 15000 ? v : NaN;
+}
+async function groundFtRetry(lat, lng) { const v = await groundFt(lat, lng); return isFinite(v) ? v : groundFt(lat, lng); }
+async function censusPoint(address) {
+  const j = await getJson(CENSUS_URL + "?" + new URLSearchParams({ address, benchmark: "Public_AR_Current", format: "json" }).toString(), 8000);
+  const m = j && j.result && j.result.addressMatches && j.result.addressMatches[0];
+  return m && m.coordinates ? { lat: Number(m.coordinates.y), lng: Number(m.coordinates.x) } : null;
+}
+// Least-squares plane z = a + b*x + c*y through the points (x east, y north, in feet); returns the grade in %
+function planeGrade(pts) {
+  let n = 0, sx = 0, sy = 0, sz = 0, sxx = 0, syy = 0, sxy = 0, sxz = 0, syz = 0;
+  pts.forEach((p) => { n++; sx += p.x; sy += p.y; sz += p.z; sxx += p.x * p.x; syy += p.y * p.y; sxy += p.x * p.y; sxz += p.x * p.z; syz += p.y * p.z; });
+  const mx = sx / n, my = sy / n, mz = sz / n;
+  const Sxx = sxx - n * mx * mx, Syy = syy - n * my * my, Sxy = sxy - n * mx * my, Sxz = sxz - n * mx * mz, Syz = syz - n * my * mz;
+  const det = Sxx * Syy - Sxy * Sxy;
+  if (Math.abs(det) < 1e-9) return NaN;
+  const b = (Sxz * Syy - Syz * Sxy) / det, c = (Syz * Sxx - Sxz * Sxy) / det;
+  return Math.sqrt(b * b + c * c) * 100;
+}
+app.post("/api/site", express.json({ limit: "2kb" }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!sameSite(req)) return res.status(403).json({ found: false, reason: "origin" });
+  const b = req.body || {}, address = String(b.address || "").slice(0, 200);
+  let lat = Number(b.lat), lng = Number(b.lng), from = "page";
+  const inSoCal = () => isFinite(lat) && isFinite(lng) && lat > 32 && lat < 35.5 && lng > -119.5 && lng < -114;
+  const now = Date.now(), list = (siteHits.get(req.ip) || []).filter((t) => now - t < 600000);
+  list.push(now); siteHits.set(req.ip, list); if (siteHits.size > 5000) siteHits.clear();
+  if (list.length > 30) return res.json({ found: false, reason: "rate_limited" });
+  if (!inSoCal() && address.length >= 6) { const p = await censusPoint(address); if (p) { lat = p.lat; lng = p.lng; from = "census"; } }
+  if (!inSoCal()) return res.json({ found: false, reason: "no location" });
+  const key = lat.toFixed(4) + "," + lng.toFixed(4);
+  const hit = siteCache.get(key);
+  if (hit && Date.now() - hit.at < 30 * 86400000) return res.json(hit.body);
+  const R = 15, ftPerM = 3.28084, mLat = 111320, mLng = 111320 * Math.cos(lat * Math.PI / 180);
+  const ring = [[0, 0]];
+  for (let i = 0; i < 8; i++) ring.push([R * Math.cos(i * Math.PI / 4), R * Math.sin(i * Math.PI / 4)]);  // [east m, north m]
+  const zs = await Promise.all(ring.map(([e, n]) => groundFtRetry(lat + n / mLat, lng + e / mLng)));
+  const pts = ring.map(([e, n], i) => ({ x: e * ftPerM, y: n * ftPerM, z: zs[i] })).filter((p) => isFinite(p.z));
+  if (pts.length < 6 || !isFinite(zs[0])) return res.json({ found: false, reason: "elevation lookup failed" });
+  const grade = planeGrade(pts), zv = pts.map((p) => p.z);
+  if (!isFinite(grade)) return res.json({ found: false, reason: "elevation lookup failed" });
+  const body = { found: true, source: "USGS 3DEP elevation", located: from, points: pts.length, radiusFt: Math.round(R * ftPerM),
+    slopePct: Math.round(grade * 10) / 10, reliefFt: Math.round((Math.max(...zv) - Math.min(...zv)) * 10) / 10 };
+  siteCache.set(key, { at: Date.now(), body }); if (siteCache.size > 5000) siteCache.clear();
   res.json(body);
 });
 

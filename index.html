@@ -600,7 +600,22 @@
     .cust-n { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
     .cust-n.bad, .c-sqft-n.bad { color: #b42318; font-weight: 600; }
     .c-custom { margin: -6px 0 18px; display: grid; grid-template-columns: auto 180px 1fr; gap: 6px 12px; align-items: center; }
-    .c-custom[hidden], .chips[hidden], .hoa-check[hidden] { display: none; }
+    .c-custom[hidden], .chips[hidden], .hoa-check[hidden], .hoa-mini[hidden] { display: none; }
+    /* Step 1: "Use my current location" on the left, the HOA box on the right */
+    .addr-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; }
+    .addr-tools .locate { margin-top: 0; }
+    .hoa-mini { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; min-height: 40px; padding: 4px 2px; font: 600 14px var(--sans); color: var(--navy-deep); cursor: pointer; }
+    .hoa-mini input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--navy); cursor: pointer; }
+    /* Step 3: the contact consent is a checkbox they tick before sending */
+    .consent-check { margin: 4px 0 6px; }
+    .consent-check > span { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+    .consent-check:has(input[aria-invalid="true"]) { border-color: #c0392b; }
+    .consent-err { display: block; margin: 0 0 10px; }
+    .rent-notice.fit-good { border-color: var(--green); background: var(--green-soft); }
+    .rent-notice.fit-good svg { color: var(--green); }
+    .rent-notice.fit-info { border-color: var(--navy); background: var(--sky); }
+    .rent-notice.fit-info svg { color: var(--navy); }
+    .rent-notice p.fit-more { margin-top: 8px; font-size: 14px; color: var(--muted); }
     .hoa-check { display: flex; gap: 12px; align-items: flex-start; margin: 2px 0 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); cursor: pointer; }
     .hoa-check input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--navy); cursor: pointer; }
     .hoa-check strong { display: block; font-size: 15px; line-height: 1.4; color: var(--navy-deep); }
@@ -1013,13 +1028,16 @@
             <label for="addr" class="q" tabindex="-1">Enter Your Property Address (Southern&nbsp;California)</label>
             <input id="addr" name="address" type="text" value="" autocomplete="street-address" inputmode="text" autocapitalize="words" placeholder="Street address, city and ZIP" enterkeyhint="next">
             <span class="err" id="addr-err"></span>
-            <button type="button" class="locate" id="locate-btn" hidden><svg width="16" height="16" aria-hidden="true"><use href="#i-pin"/></svg>Use my current&nbsp;location</button>
+            <div class="addr-tools">
+              <button type="button" class="locate" id="locate-btn" hidden><svg width="16" height="16" aria-hidden="true"><use href="#i-pin"/></svg>Use my current&nbsp;location</button>
+              <label class="hoa-mini" id="hoa-box" for="g-hoa"><input type="checkbox" id="g-hoa" autocomplete="off">My property is in an&nbsp;HOA</label>
+            </div>
           </div>
           <div class="grid2">
             <div class="field sel">
               <label for="ptype">Property Type</label>
               <div class="sel-box"><svg class="sel-ic" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg>
-                <select id="ptype" name="property_type" aria-describedby="ptype-n">
+                <select id="ptype" name="property_type" aria-describedby="ptype-n" autocomplete="off">
                   <option value="Single-Family Home" selected>Single-Family Home</option>
                   <option value="Duplex">Duplex</option>
                   <option value="Triplex">Triplex</option>
@@ -1031,7 +1049,7 @@
             <div class="field sel">
               <label for="goal">Primary Goal</label>
               <div class="sel-box"><svg class="sel-ic" width="20" height="20" aria-hidden="true"><use href="#i-dollar"/></svg>
-                <select id="goal" name="adu_goal" aria-describedby="goal-n">
+                <select id="goal" name="adu_goal" aria-describedby="goal-n" autocomplete="off">
                   <option value="Maximize Cash Flow" selected>Maximize Cash Flow ($2k–$3k+/mo)</option>
                   <option value="Build Long-Term Resale Equity">Build Long-Term Resale Equity</option>
                   <option value="Family / Aging Parents / Adult Kids">Family / Aging Parents / Adult Kids</option>
@@ -1102,11 +1120,11 @@
               <div class="field"><label for="g-email" id="g-email-l">Email (your Blueprint PDF goes&nbsp;here)</label><input id="g-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="john@example.com"><span class="err" id="g-email-err"></span></div>
             </div>
             <div class="hp" aria-hidden="true"><label for="g-hp">Leave empty</label><input id="g-hp" type="text" tabindex="-1" autocomplete="off"></div>
-            <label class="hoa-check" id="hoa-box" for="g-hoa"><input type="checkbox" id="g-hoa" name="hoa_pud"><span><strong>This property is part of an HOA or a planned unit development&nbsp;(PUD)</strong><small>Condo or attached townhome? Choose Condo / Townhome as the property type in step&nbsp;1.</small></span></label>
+            <label class="hoa-check consent-check" for="g-consent"><input type="checkbox" id="g-consent" name="consent" autocomplete="off" aria-describedby="g-consent-err"><span>I agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text me at the number I entered, including with automated technology, and email me about my project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</span></label>
+            <span class="err consent-err" id="g-consent-err"></span>
             <div id="g-ts" class="ts-box"></div>
             <span class="err" id="g-err" role="alert"></span>
             <div class="row"><button type="button" class="back" data-next="2">← Back</button><button class="btn btn-primary" type="submit" id="g-submit">Generate Instant Feasibility&nbsp;Blueprint</button></div>
-            <p class="fine consent">By clicking <span id="g-btn-name">Generate Instant Feasibility Blueprint</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
           </form>
         </div>
 
@@ -1149,9 +1167,10 @@
             <div class="stat cool"><span>Immediate Day-1 Equity&nbsp;Pop</span><strong id="o-equity">—</strong><em id="o-appraisal"></em></div>
           </div>
           <div class="bp-rent"><div class="rent-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Important: Rent Figures Are Estimates, Not&nbsp;Guarantees</strong><p>The rent shown is an automated estimate from nearby rental listings supplied by a third-party data service, or from our pricing model. It is not an appraisal, a rental analysis or a promise of any rent, income, occupancy or tenant. Actual rent depends on your unit, its condition, the market, timing and local rent rules. The cash flow, payoff and equity figures rely on this estimate and can change. A lender may not count projected rent as&nbsp;income.</p></div></div></div>
-          <div class="bp-rent" id="o-hoa" hidden><div class="rent-notice hoa-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Your Property Is in an HOA or&nbsp;PUD</strong><p>Your HOA may have rules about adding an ADU, and it might not allow one. Before you move forward, please check with your HOA whether it allows an ADU and what approval you&nbsp;need.</p></div></div></div>
+          <div class="bp-rent" id="o-fit" hidden><div class="rent-notice" id="o-fit-box" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Lot Fit Check: What Your Lot Can&nbsp;Hold</strong><p id="o-fit-t"></p><p class="fit-more">Your PDF has the full breakdown: slope, open land and every ADU option for this&nbsp;lot.</p></div></div></div>
+          <div class="bp-rent" id="o-hoa" hidden><div class="rent-notice hoa-notice" role="note"><svg width="22" height="22" aria-hidden="true"><use href="#i-info"/></svg><div><strong>Your Property Is in an&nbsp;HOA</strong><p>Your HOA may have rules about adding an ADU, and it might not allow one. Before you move forward, please check with your HOA whether it allows an ADU and what approval you&nbsp;need.</p></div></div></div>
           <ul class="bp-checks">
-            <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>State Setbacks:</strong> 4-foot rear &amp; side setbacks&nbsp;compliant.</span></li>
+            <li><svg width="20" height="20"><use href="#i-check"/></svg><span id="o-setback"><strong>State Setbacks:</strong> 4-foot rear &amp; side setbacks&nbsp;compliant.</span></li>
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Payoff Speed (100% Net Rent):</strong> <span class="o" id="o-payoff">—</span></span></li>
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>City Impact Fees:</strong> <span class="g" id="o-impact">—</span></span></li>
             <li><svg width="20" height="20"><use href="#i-check"/></svg><span><strong>Net Monthly Cash Flow:</strong> <span class="g" id="o-net">—</span></span></li>
@@ -1795,14 +1814,13 @@
     function isCondo() { return answers.ptype === "Condo / Townhome"; }
     var GATE_TEXT = null;
     function condoMode() {
-      if (!GATE_TEXT) GATE_TEXT = { q: $("g-q").innerHTML, hint: $("g-hint").innerHTML, email: $("g-email-l").innerHTML, btn: $("g-submit").innerHTML, name: $("g-btn-name").textContent };
+      if (!GATE_TEXT) GATE_TEXT = { q: $("g-q").innerHTML, hint: $("g-hint").innerHTML, email: $("g-email-l").innerHTML, btn: $("g-submit").innerHTML };
       var c = isCondo();
       $("p1-next").innerHTML = c ? "Continue to Your&nbsp;Details" : "Continue to ADU&nbsp;Scope";
       $("g-q").innerHTML = c ? "Your Property&nbsp;Review" : GATE_TEXT.q;
       $("g-hint").innerHTML = c ? "Condos and townhomes are part of an HOA, so the path is different. Enter your details and we'll email you a property review that explains your&nbsp;options." : GATE_TEXT.hint;
       $("g-email-l").innerHTML = c ? "Email (your property review goes&nbsp;here)" : GATE_TEXT.email;
       if (!$("g-submit").disabled) $("g-submit").innerHTML = c ? "Send My Property&nbsp;Review" : GATE_TEXT.btn;
-      $("g-btn-name").textContent = c ? "Send My Property Review" : GATE_TEXT.name;
       $("pay-box").hidden = c;
       $("hoa-box").hidden = c;
     }
@@ -1848,7 +1866,7 @@
           to = curStep === 3 ? 1 : 3;
           if (to === 3) loadJsPdf().catch(function () {});
         }
-        if (to === 2) parcelFor();  // start the parcel lookup in the background
+        if (to === 2) { parcelFor(); siteFor(); }  // start the parcel and slope lookups in the background
         if (to === 3 && !isCondo() && answers.scope === "custom" && !CUSTOM) {
           $("cust-n").textContent = "Enter your ADU size in sq ft, or pick one of the models\u00a0above.";
           $("cust-n").classList.add("bad"); $("cust-sqft").focus();
@@ -1860,6 +1878,14 @@
     $("addr").addEventListener("input", function () { $("addr-err").textContent = ""; $("addr").removeAttribute("aria-invalid"); });
     $("addr").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.querySelector('#p1 [data-next="2"]').click(); } });
     $("restart").addEventListener("click", function () { show(1); $("addr").focus(); });
+    // Clicking the logo starts everything over at the top, like a first visit. Name, phone and email stay filled in.
+    document.querySelector(".logo").addEventListener("click", function (e) {
+      e.preventDefault();
+      if (typeof saveDraft === "function") saveDraft();
+      try { history.scrollRestoration = "manual"; } catch (x) {}
+      window.scrollTo(0, 0);
+      location.replace(location.pathname + location.search);
+    });
 
     // ---------- Blueprint math (same formulas as the calculator) ----------
     function payoffMonths(cost, payment, rate) {
@@ -2339,6 +2365,25 @@
         .catch(function () { clearTimeout(t); parcelAsk.p = null; return null; }) };
       return parcelAsk.p;
     }
+    // Ground slope around the home (USGS elevation, through our server), for the PDF's lot fit check.
+    // It starts when they leave step 1 so it is usually ready by the time they submit; any problem resolves to null.
+    var siteAsk = { key: "", p: null }, SITE = null, LOTFIT = null;
+    function siteFor() {
+      var text = $("addr").value.trim(), g = geoFor($("addr")), key = text.toLowerCase();
+      if (text.length < 6) return Promise.resolve(null);
+      if (siteAsk.key === key && siteAsk.p) return siteAsk.p;
+      var spot = g.address_lat ? Promise.resolve({ lat: g.address_lat, lng: g.address_lng })
+        : within(parcelFor(), 9000).then(function (pc) { return pc && pc.lat ? { lat: pc.lat, lng: pc.lng } : {}; });
+      siteAsk = { key: key, p: spot.then(function (pt) {
+        var ctl = "AbortController" in window ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+        return fetch("/api/site", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ address: text, lat: pt.lat || "", lng: pt.lng || "" }), signal: ctl ? ctl.signal : undefined })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { clearTimeout(t); if (!j || !j.found) siteAsk.p = null; return j && j.found ? j : null; })
+          .catch(function () { clearTimeout(t); siteAsk.p = null; return null; });
+      }) };
+      return siteAsk.p;
+    }
     function within(p, ms) { return Promise.race([p, new Promise(function (res) { setTimeout(function () { res(null); }, ms); })]); }
     function parcelFields(pc) {
       if (!pc) return { parcel_found: "no" };
@@ -2371,7 +2416,7 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261119";  // the 5-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261120";  // the 6-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;
@@ -2407,12 +2452,12 @@
         return { url: c.toDataURL("image/png"), ratio: img.naturalWidth / img.naturalHeight };
       } catch (e) { return null; }
     }
-    // The 5-page blueprint itself lives in js/blueprint-pdf.js (shared with samples/make-site-samples.js),
+    // The 6-page blueprint itself lives in js/blueprint-pdf.js (shared with samples/make-site-samples.js),
     // fed with this page's numbers so the PDF matches what the visitor saw.
     function buildPlanPdf(JsPDF, who) {
       var doc = window.buildBlueprintPdf(JsPDF, {
         name: who.name, address: who.address, ptype: answers.ptype, pay: answers.pay,
-        scope: bp.scope, config: CONFIG, logo: logoDataUrl(), parcel: PARCEL, hoa: $("g-hoa").checked,
+        scope: bp.scope, config: CONFIG, logo: logoDataUrl(), parcel: PARCEL, site: SITE, hoa: $("g-hoa").checked,
         place: { city: geoFor($("addr")).address_city || "", neighborhood: geoFor($("addr")).address_neighborhood || "" }
       });
       return doc.output("blob");
@@ -2445,15 +2490,19 @@
       }).catch(function () { return { plan_pdf_url: "", plan_pdf_type: "condo / townhome review", plan_pdf_error: "pdf not built" }; });
     }
     function preparePlan(btn, who) {
-      btn.textContent = "Checking your parcel and local rents...";
-      return Promise.all([within(parcelFor(), 7000), within(rentFor(), 7000)]).then(function (got) {
+      btn.textContent = "Checking your lot, slope and local rents...";
+      return Promise.all([within(parcelFor(), 7000), within(rentFor(), 7000), within(siteFor(), 9000)]).then(function (got) {
         var pc = got[0], market = got[1];
         PARCEL = pc && pc.residential !== false ? pc : null;  // only homes get parcel facts on the page and in the PDF
+        SITE = got[2] ? { slopePct: got[2].slopePct, reliefFt: got[2].reliefFt } : null;
         computeBlueprint(market);
         var extra = Object.assign(parcelFields(pc), { rent_source: market ? "rentcast" : "model" });
         if (market) Object.assign(extra, { est_rent: money(bp.scope.rent), est_rent_range: bp.scope.rentRange, est_net_cash_flow: money(bp.net), est_payoff_time: bp.payoff, rent_comp_count: String(market.compCount || "") });
         btn.textContent = "Generating your blueprint...";
         return loadJsPdf().then(function (JsPDF) {
+          LOTFIT = typeof window.lotFitCheck === "function" ? window.lotFitCheck({ scope: bp.scope, ptype: answers.ptype, parcel: PARCEL, site: SITE, hoa: $("g-hoa").checked }) : null;
+          if (LOTFIT) Object.assign(extra, { lot_fit_summary: LOTFIT.bottom, lot_fit_detached: LOTFIT.options.filter(function (o) { return /detached/i.test(o.name); }).map(function (o) { return o.verdict; })[0] || "",
+            site_slope_pct: SITE ? String(SITE.slopePct) : "not measured", site_open_land_sqft: LOTFIT.open == null ? "unknown" : String(LOTFIT.open) });
           var blob = buildPlanPdf(JsPDF, who);
           btn.textContent = "Saving your blueprint...";
           return uploadPlan(blob, who).then(function (url) { return Object.assign(extra, { plan_pdf_url: url }); },
@@ -2703,13 +2752,14 @@
     }
     // opts: extra() -> webhook fields, prepare(btn, who) -> Promise of more fields, done() -> after a successful send
     function wire(prefix, form, opts) {
-      var nameEl = $(prefix + "-name"), phoneEl = $(prefix + "-phone"), emailEl = $(prefix + "-email"), addrEl = $(prefix + "-addr");
+      var nameEl = $(prefix + "-name"), phoneEl = $(prefix + "-phone"), emailEl = $(prefix + "-email"), addrEl = $(prefix + "-addr"), consentEl = $(prefix + "-consent");
       var busy = false;
       [nameEl, phoneEl, emailEl, addrEl].forEach(function (el) {
         if (!el) return;
         el.addEventListener("input", function () { el.removeAttribute("aria-invalid"); var s = $(el.id + "-err"); if (s) s.textContent = ""; $(prefix + "-err").textContent = ""; });
       });
       phoneEl.addEventListener("blur", function () { fmtPhone(phoneEl); });
+      if (consentEl) consentEl.addEventListener("change", function () { consentEl.removeAttribute("aria-invalid"); $(consentEl.id + "-err").textContent = ""; $(prefix + "-err").textContent = ""; });
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         if (busy) return;
@@ -2719,6 +2769,7 @@
         if (phoneEl.value.replace(/\D/g, "").length < 10) bad1(phoneEl, "Enter a 10-digit phone number.");
         if (emailEl && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailEl.value.trim())) bad1(emailEl, "Enter an email like name@example.com.");
         if (addrEl && addrEl.value.trim().length < 5) bad1(addrEl, "Enter the property address.");
+        if (consentEl && !consentEl.checked) bad1(consentEl, "Please check the box to agree before you continue.");
         if (bad.length) { bad[0].focus(); return; }
         var full = nameEl.value.trim().replace(/\s+/g, " "), parts = full.split(" ");
         var digits = phoneEl.value.replace(/\D/g, ""); if (digits.length === 10) digits = "1" + digits;
@@ -2727,7 +2778,7 @@
           email: emailEl ? emailEl.value.trim().toLowerCase() : "",
           phone: digits.length >= 11 ? "+" + digits : phoneEl.value.trim(),
           source: SOURCE, page_url: location.href.split("#")[0], submitted_at: new Date().toISOString()
-        }, syncFields(), opts.extra(), geoFor(addrEl || $("addr")), utm());
+        }, consentEl ? { contact_consent: "Yes, checked the consent box" } : {}, syncFields(), opts.extra(), geoFor(addrEl || $("addr")), utm());
         function finish() {
           Array.prototype.forEach.call(document.querySelectorAll(".ok-name"), function (s) { s.textContent = parts[0]; });
           // Don't make them type it twice if they use another form later
@@ -2806,6 +2857,13 @@
         }
         renderBlueprint();
         $("o-hoa").hidden = !$("g-hoa").checked;
+        $("o-fit").hidden = !LOTFIT;
+        if (LOTFIT) {
+          $("o-fit-box").className = "rent-notice" + (LOTFIT.tone === "good" ? " fit-good" : LOTFIT.tone === "info" ? " fit-info" : "");
+          $("o-fit-t").textContent = nb(LOTFIT.bottom);
+          var detFit = LOTFIT.options.filter(function (o) { return /detached/i.test(o.name); })[0];
+          if (!/garage/i.test(bp.scope.title || "") && detFit && detFit.level !== "ok") $("o-setback").innerHTML = "<strong>State Setbacks:</strong> 4-foot rear &amp; side setbacks apply. See your lot fit check&nbsp;above.";
+        }
         Array.prototype.forEach.call(document.querySelectorAll(".ok-email"), function (s) { s.textContent = $("g-email").value.trim().toLowerCase(); });
         if (lead && !lead.plan_pdf_url) $("plan-sent-msg").innerHTML = "<strong>We have your request, but your PDF didn't generate this&nbsp;time.</strong> Your numbers are below, and our team will follow up with your Blueprint. Questions? Call (949)&nbsp;787-2662.";
         show(4);
