@@ -1574,10 +1574,11 @@
             </select>
           </div>
           <div class="hp" aria-hidden="true"><label for="v-hp">Leave empty</label><input id="v-hp" type="text" tabindex="-1" autocomplete="off"></div>
+          <label class="hoa-check consent-check" for="v-consent"><input type="checkbox" id="v-consent" name="consent" autocomplete="off" aria-describedby="v-consent-err"><span>I agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text me at the number I entered, including with automated technology, and email me about my project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</span></label>
+          <span class="err consent-err" id="v-consent-err"></span>
           <div id="v-ts" class="ts-box"></div>
           <span class="err" id="v-err" role="alert"></span>
           <button class="btn btn-primary" type="submit" style="width:100%">Schedule My Site&nbsp;Walk</button>
-          <p class="fine consent">By clicking Schedule My Site Walk, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
         </form>
         <div class="success" id="visit-ok" hidden>
           <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -1664,10 +1665,11 @@
         </div>
         <div class="hp" aria-hidden="true"><label for="m-hp">Leave empty</label><input id="m-hp" type="text" tabindex="-1" autocomplete="off"></div>
         <p class="hint" id="m-fee">This is a paid visit, and we'll confirm the fee when we schedule&nbsp;it.</p>
+        <label class="hoa-check consent-check" for="m-consent"><input type="checkbox" id="m-consent" name="consent" autocomplete="off" aria-describedby="m-consent-err"><span>I agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text me at the number I entered, including with automated technology, and email me about my project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</span></label>
+        <span class="err consent-err" id="m-consent-err"></span>
         <div id="m-ts" class="ts-box"></div>
         <span class="err" id="m-err" role="alert"></span>
         <button class="btn btn-primary" type="submit" style="width:100%" id="m-btn">Schedule My Site&nbsp;Walk</button>
-        <p class="fine consent">By clicking <span id="m-btn-name">Schedule My Site Walk</span>, you agree that Let's Talk ADU, Mars Construction Industries Corp and E Mortgage Capital Inc. may call and text you at the number you entered, including with automated technology, and email you, about your project and financing. Consent is not a condition of any purchase or loan. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for&nbsp;help.</p>
       </form>
       <div class="success" id="m-ok" hidden>
         <div class="tick"><svg width="30" height="30"><use href="#i-check"/></svg></div>
@@ -2324,7 +2326,6 @@
       $("m-title").innerHTML = isCity ? "Check Your City's Pre-Approved&nbsp;Plans" : "ADU Feasibility &amp; Sewer&nbsp;Scan";
       $("m-fee").hidden = isCity;
       $("m-btn").innerHTML = isCity ? "Check My City's&nbsp;Plans" : "Schedule My Site&nbsp;Walk";
-      $("m-btn-name").textContent = isCity ? "Check My City's Plans" : "Schedule My Site Walk";
       $("m-form").hidden = false; $("m-ok").hidden = true;
       if ($("addr").value && !$("m-addr").value) $("m-addr").value = $("addr").value;
       $("modal").hidden = false;
