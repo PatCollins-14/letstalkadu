@@ -2376,7 +2376,7 @@
       var spot = g.address_lat ? Promise.resolve({ lat: g.address_lat, lng: g.address_lng })
         : within(parcelFor(), 9000).then(function (pc) { return pc && pc.lat ? { lat: pc.lat, lng: pc.lng } : {}; });
       siteAsk = { key: key, p: spot.then(function (pt) {
-        var ctl = "AbortController" in window ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+        var ctl = "AbortController" in window ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 35000);
         return fetch("/api/site", { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ address: text, lat: pt.lat || "", lng: pt.lng || "" }), signal: ctl ? ctl.signal : undefined })
           .then(function (r) { return r.json(); })
@@ -2492,10 +2492,10 @@
     }
     function preparePlan(btn, who) {
       btn.textContent = "Checking your lot, slope and local rents...";
-      return Promise.all([within(parcelFor(), 7000), within(rentFor(), 7000), within(siteFor(), 9000)]).then(function (got) {
+      return Promise.all([within(parcelFor(), 7000), within(rentFor(), 7000), within(siteFor(), 12000)]).then(function (got) {
         var pc = got[0], market = got[1];
         PARCEL = pc && pc.residential !== false ? pc : null;  // only homes get parcel facts on the page and in the PDF
-        SITE = got[2] ? { slopePct: got[2].slopePct, reliefFt: got[2].reliefFt } : null;
+        SITE = got[2] || null;  // the full lot fit check: slope, parcel geometry, overlays, sources
         computeBlueprint(market);
         var extra = Object.assign(parcelFields(pc), { rent_source: market ? "rentcast" : "model" });
         if (market) Object.assign(extra, { est_rent: money(bp.scope.rent), est_rent_range: bp.scope.rentRange, est_net_cash_flow: money(bp.net), est_payoff_time: bp.payoff, rent_comp_count: String(market.compCount || "") });
@@ -2503,7 +2503,9 @@
         return loadJsPdf().then(function (JsPDF) {
           LOTFIT = typeof window.lotFitCheck === "function" ? window.lotFitCheck({ scope: bp.scope, ptype: answers.ptype, parcel: PARCEL, site: SITE, hoa: $("g-hoa").checked }) : null;
           if (LOTFIT) Object.assign(extra, { lot_fit_summary: LOTFIT.bottom, lot_fit_detached: LOTFIT.options.filter(function (o) { return /detached/i.test(o.name); }).map(function (o) { return o.verdict; })[0] || "",
-            site_slope_pct: SITE ? String(SITE.slopePct) : "not measured", site_open_land_sqft: LOTFIT.open == null ? "unknown" : String(LOTFIT.open) });
+            site_slope_pct: LOTFIT.slope == null ? "not measured" : String(LOTFIT.slope), site_open_land_sqft: LOTFIT.open == null ? "unknown" : String(LOTFIT.open),
+            lot_fit_max_detached_sqft: LOTFIT.maxFit == null ? "unknown" : String(LOTFIT.maxFit), lot_fit_measured: LOTFIT.measured ? "yes" : "estimated",
+            lot_fit_fire_zone: SITE && SITE.overlays && SITE.overlays.fire ? SITE.overlays.fire.zone : "unknown", lot_fit_flood_zone: SITE && SITE.overlays && SITE.overlays.flood ? SITE.overlays.flood.zone : "unknown" });
           var blob = buildPlanPdf(JsPDF, who);
           btn.textContent = "Saving your blueprint...";
           return uploadPlan(blob, who).then(function (url) { return Object.assign(extra, { plan_pdf_url: url }); },

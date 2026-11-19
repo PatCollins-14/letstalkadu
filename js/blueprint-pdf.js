@@ -11,7 +11,7 @@
  *     place,                         // optional, from Google: { city, neighborhood }
  *     logo,                          // optional { url: "data:image/png;base64,...", ratio: w / h }
  *     hoa,                           // optional true when the owner says the property is in an HOA
- *     site,                          // optional, from /api/site: { slopePct, reliefFt } (USGS ground elevation around the home)
+ *     site,                          // optional, from /api/site: { slope, geo (parcel/building geometry), overlays, sources } or the older { slopePct, reliefFt }
  *     date                           // optional Date
  *   }) -> jsPDF document (exactly 6 pages, or it throws)
  *
@@ -99,107 +99,154 @@
   };
 
   // ---------------- Lot fit check (shared with the page as window.lotFitCheck) ----------------
-  // A common-sense screen of which ADU types this lot can realistically hold, built from the county lot record
-  // (lot and home size), USGS ground elevation around the home (slope) and the owner's answers.
-  // It only claims what the data supports and says plainly when something could not be checked.
-  //   lotFit({ scope, ptype, parcel, site: { slopePct, reliefFt }, hoa }) ->
-  //   { slope, slopeBand, open, need, maxFit, tone, bottom, options: [{ name, verdict, level, why }], notes: [], checked: [] }
+  // Which ADU types this lot can realistically hold. Measured data comes first (from /api/site: the parcel outline,
+  // building outlines, slope across the buildable area, fire / flood / city overlays, transit); when a source is
+  // missing it falls back to an estimate from the county record and says so. Every fact carries its source and a
+  // confidence label: Measured, Estimated or Not available.
+  //   lotFit({ scope, ptype, parcel, site, hoa }) ->
+  //   { tone, bottom, options: [{ name, verdict, level, why }], facts: [{ label, value, conf }], notes: [], sources: [], geo, slope, ... }
   function lotFit(input) {
     var d = input.scope || {}, sqft = Math.round(d.sqft || 0), garagePick = /garage/i.test(d.title || "");
-    var pc = input.parcel && input.parcel.apn ? input.parcel : null, site = input.site || null;
+    var site = input.site || {}, sp = site.parcel || null;
+    // LA leads also have the page's parcel record; other counties use what the site check read from the county map
+    var pc = input.parcel && input.parcel.apn ? input.parcel : sp && sp.apn ? { apn: sp.apn, beds: sp.beds || 0, yearBuilt: sp.yearBuilt || "", units: sp.units || 0, buildingSqft: sp.livingSqft || 0 } : null;
+    var poolOnRecord = !!(sp && sp.pool), garageStalls = sp && sp.garageStalls ? sp.garageStalls : 0;
+    var geo = site.geo && site.geo.ok ? site.geo : null, ov = site.overlays || {};
     var multi = /duplex|triplex|fourplex|multi/i.test(input.ptype || "") || !!(pc && pc.units > 1);
     var hoa = !!input.hoa, ifHoa = hoa ? ", if your HOA approves" : "";
     var n0 = function (v) { return Math.round(v).toLocaleString("en-US"); };
-    var slope = site && isFinite(site.slopePct) && site.slopePct >= 0 ? Math.round(site.slopePct) : null;
-    var relief = site && isFinite(site.reliefFt) ? Math.max(1, Math.round(site.reliefFt)) : null;
+    var detSize = garagePick ? 749 : Math.max(sqft, 150);
+    var needFor = function (s) { return Math.round(Math.pow(Math.sqrt(s) + 8, 2) / 50) * 50; };
+    var need = needFor(detSize), side = Math.round(Math.sqrt(need)), side2 = Math.round(need / side);
+
+    // ---- slope: across the buildable area when we have it, otherwise around the home ----
+    var sl = site.slope || (isFinite(site.slopePct) ? { avgPct: site.slopePct, maxPct: null, reliefFt: site.reliefFt, where: "around the home" } : null);
+    var slope = sl && isFinite(sl.avgPct) ? Math.round(sl.avgPct) : null;
+    var slopeMax = sl && isFinite(sl.maxPct) ? Math.round(sl.maxPct) : null;
+    var relief = sl && isFinite(sl.reliefFt) ? Math.max(1, Math.round(sl.reliefFt)) : null;
+    var slopeWhere = sl && sl.where ? sl.where : "around the home";
     var band = slope == null ? "unknown" : slope < 10 ? "flat" : slope < 20 ? "moderate" : slope < 33 ? "steep" : "very steep";
-    // Open land estimate: the lot minus the home's footprint, a garage and driveway (about 400 sq ft) and a front yard
-    var L = pc && pc.lotSqft > 0 ? pc.lotSqft : 0, B = pc && pc.buildingSqft > 0 ? pc.buildingSqft : 0, open = null;
-    if (L >= 1500 && B > 0) {
-      var foot = B > 0.5 * L ? B / 2 : B;  // a big home on a small lot is usually two stories
-      var width = Math.max(40, Math.min(120, Math.sqrt(L / 2.5)));
+
+    // ---- space: measured from outlines, or estimated from lot and home size ----
+    var L = geo ? geo.lotArea : pc && pc.lotSqft > 0 ? pc.lotSqft : 0, B = pc && pc.buildingSqft > 0 ? pc.buildingSqft : 0;
+    var maxFit = null, open = null, spaceConf = "Not available", big = L > 20000;
+    if (geo) { maxFit = geo.maxFit; open = geo.buildableArea; spaceConf = "Measured"; }
+    else if (L >= 1500 && B > 0) {
+      var foot = B > 0.5 * L ? B / 2 : B, width = Math.max(40, Math.min(120, Math.sqrt(L / 2.5)));
       open = Math.max(0, Math.round((L - foot - 400 - width * 20) / 50) * 50);
+      var usable = open * 0.8;
+      maxFit = usable <= 64 ? 0 : Math.min(1200, Math.floor(Math.pow(Math.sqrt(usable) - 8, 2) / 50) * 50);
+      spaceConf = "Estimated";
     }
-    var usable = open == null ? null : open * 0.8;  // not every open foot is in one usable rectangle
-    var needFor = function (s) { return Math.round(Math.pow(Math.sqrt(s) + 8, 2) / 50) * 50; };  // the unit plus 4 ft all around
-    var detSize = garagePick ? 749 : Math.max(sqft, 150), need = needFor(detSize);
-    var maxFit = usable == null ? null : usable <= 64 ? 0 : Math.floor(Math.pow(Math.sqrt(usable) - 8, 2) / 50) * 50;
-    var big = L > 20000;
-    var side = Math.round(Math.sqrt(need)), side2 = Math.round(need / side);
+    var frontMaxFit = geo && isFinite(geo.frontYardMaxFit) ? geo.frontYardMaxFit : null;
+    var acc = geo ? (geo.accessory || []).filter(function (b) { return b.area >= 120 && b.area <= 1200; }) : [];
+    var garageSeen = acc.length ? acc.sort(function (a, b) { return b.area - a.area; })[0] : null;
+
+    // ---- overlays ----
+    var fire = ov.fire || null, flood = ov.flood || null, transit = ov.transit || null;
+    var fireVH = !!(fire && fire.veryHigh), fireHigh = !!(fire && /high/i.test(fire.zone || "") && !fire.veryHigh);
+    var floodSpecial = !!(flood && flood.special);
+    var laHillFire = ov.hillside === true && fireVH;
+    var nearTransit = transit && transit.miles != null ? transit.miles <= 0.5 : transit ? false : null;
+
     var opts = [], notes = [];
 
-    // 1. Detached ADU in the yard
+    // 1. Detached ADU
     var det = { name: garagePick ? "Detached ADU" : n0(detSize) + " sq ft detached ADU" };
-    if (band === "very steep") { det.level = "no"; det.verdict = "Unlikely here"; det.why = "The ground around your home changes about " + relief + " ft over a short distance (about " + slope + "% grade). A separate unit on ground this steep needs a hillside foundation, retaining walls and engineering, which usually makes it impractical."; }
-    else if (maxFit != null && maxFit < 300 && !big) { det.level = "no"; det.verdict = "Unlikely here"; det.why = "After the home, a garage and driveway and the front yard, we estimate about " + n0(open) + " sq ft of open land. That is not enough room for a separate unit with 4 ft of space around it."; }
-    else if (band === "steep") { det.level = "check"; det.verdict = "Possible, but costly"; det.why = "Your lot slopes about " + slope + "%. A detached unit can be built on a slope like this, but it usually needs a stepped foundation, retaining walls and a soils report, which can add a lot of cost."; }
-    else if (maxFit != null && maxFit < detSize && !big) { det.level = "check"; det.verdict = "A smaller size may fit"; det.why = "A " + n0(detSize) + " sq ft unit needs about " + n0(need) + " sq ft of clear land, and we estimate about " + n0(open) + " sq ft open. A detached ADU around " + n0(maxFit) + " sq ft looks more realistic, or a two-story design where your city allows it."; }
-    else if (maxFit != null) { det.level = "ok"; det.verdict = "Looks possible"; det.why = (big ? "Your " + n0(L) + " sq ft lot has plenty of room" : "We estimate about " + n0(open) + " sq ft of open land, and a " + n0(detSize) + " sq ft unit needs about " + n0(need) + " sq ft with 4 ft around it") + (band === "moderate" ? ". The ground slopes about " + slope + "%, so expect some grading or a taller foundation on one side." : band === "flat" ? ". The ground is close to flat." : "."); }
-    else { det.level = "check"; det.verdict = "Check your yard"; det.why = "We couldn't read your lot size automatically. A " + n0(detSize) + " sq ft unit needs a clear area of about " + n0(need) + " sq ft (about " + side + " x " + side2 + " ft) behind or beside the home, at least 4 ft from the back and side property lines" + (band === "moderate" ? ". Your ground slopes about " + slope + "%, so expect some grading." : band === "flat" ? ". The ground is close to flat, which helps." : "."); }
+    var spaceWords = geo ? "the open land behind and beside your home, after 4 ft from the side and rear lines, a " + geo.rules.FRONT_SETBACK + " ft front yard and " + geo.rules.SEPARATION + " ft from existing buildings"
+                         : "the open land we estimate from the county record";
+    if (band === "very steep") { det.level = "no"; det.verdict = "Unlikely here"; det.why = "The ground where it would go slopes about " + slope + "% (about " + relief + " ft of fall). A separate unit on ground this steep needs a hillside foundation, retaining walls and engineering, which usually makes it impractical."; }
+    else if (maxFit != null && maxFit < 300 && !big) {
+      det.level = "no"; det.verdict = "Unlikely in the backyard";
+      det.why = (geo ? "We mapped " + spaceWords + ". No spot is big enough for a separate unit." : "We estimate about " + n0(open) + " sq ft of open land, not enough for a separate unit with 4 ft around it.") +
+        (frontMaxFit && frontMaxFit >= 400 ? " California law may let part of the front yard be used when nothing else fits; about " + n0(frontMaxFit) + " sq ft could fit there." : "");
+    }
+    else if (band === "steep") { det.level = "check"; det.verdict = "Possible, but costly"; det.why = "The buildable area slopes about " + slope + "%" + (slopeMax && slopeMax > slope + 4 ? " (up to " + slopeMax + "% in places)" : "") + ". A detached unit can be built on a slope like this, but it usually needs a stepped foundation, retaining walls and a soils report."; }
+    else if (maxFit != null && maxFit < detSize && !big) { det.level = "check"; det.verdict = "A smaller size fits"; det.why = (geo ? "The largest clear spot on your lot is about " + geo.rect.w + " x " + geo.rect.h + " ft, enough for a detached ADU of about " + n0(maxFit) + " sq ft, not " + n0(detSize) + "." : "A " + n0(detSize) + " sq ft unit needs about " + n0(need) + " sq ft of clear land and we estimate about " + n0(open) + " sq ft, so one around " + n0(maxFit) + " sq ft is more realistic.") + " A two-story design can add space where your city allows it."; }
+    else if (maxFit != null) { det.level = "ok"; det.verdict = "Looks possible"; det.why = (geo && geo.rect ? "The largest clear spot on your lot is about " + geo.rect.w + " x " + geo.rect.h + " ft, enough for a " + n0(Math.min(maxFit, 1200)) + " sq ft footprint" : big ? "Your " + n0(L) + " sq ft lot has plenty of room" : "We estimate about " + n0(open) + " sq ft of open land; a " + n0(detSize) + " sq ft unit needs about " + n0(need)) + (band === "moderate" ? ". The ground slopes about " + slope + "%, so expect some grading or a taller foundation on one side." : band === "flat" ? ". The ground there is close to flat." : "."); }
+    else { det.level = "check"; det.verdict = "Check your yard"; det.why = "We couldn't map your lot automatically. A " + n0(detSize) + " sq ft unit needs a clear area of about " + n0(need) + " sq ft (about " + side + " x " + side2 + " ft), at least 4 ft from the back and side lines" + (band === "flat" ? ". The ground is close to flat, which helps." : band === "moderate" ? ". The ground slopes about " + slope + "%, so expect some grading." : "."); }
+    if (det.level !== "no" && laHillFire) { det.level = "check"; det.verdict = "City limits apply"; det.why += " Your lot is in LA's Hillside Area and a Very High fire zone, where the city adds limits for new ADUs."; }
     if (hoa && det.level !== "no") det.why += " Your HOA must also approve it.";
 
     // 2. Garage conversion
-    var gar = { name: multi ? "Garage or storage conversion" : "Garage conversion", level: "ok", verdict: multi ? "Often possible" : "If you have a garage" };
-    gar.why = (multi ? "Unused garages, storage rooms or other non-living space in the building can often become ADUs." : "Turning your garage into an ADU is often the simplest path.") + " It reuses the existing slab and roof, so a slope or a small yard matters much less, and the city can't make you replace the parking." + (hoa ? " Your HOA must also approve it." : "");
+    var gar = { name: multi ? "Garage or storage conversion" : "Garage conversion", level: "ok" };
+    if (garageSeen) { gar.verdict = "Looks possible"; gar.why = "We see a detached building of about " + n0(garageSeen.area) + " sq ft, likely a garage or accessory building. Converting it reuses the slab and roof, so slope and yard size matter much less, and the city can't make you replace the parking."; }
+    else if (garageStalls > 0 && !multi) { gar.verdict = "Looks possible"; gar.why = "The county record shows a " + garageStalls + "-car garage, likely attached. Converting it reuses the slab and roof, so slope and yard size matter much less, and the city can't make you replace the parking."; }
+    else { gar.verdict = multi ? "Often possible" : "If you have a garage"; gar.why = (geo ? "We don't see a separate garage building, but an attached garage can also be converted. " : "") + (multi ? "Unused garages, storage rooms or other non-living space in the building can often become ADUs." : "It reuses the existing slab and roof, so slope and yard size matter much less, and the city can't make you replace the parking."); }
+    if (hoa) gar.why += " Your HOA must also approve it.";
 
-    // 3. Attached addition (houses only)
+    // 3. Attached ADU (houses only)
     var att = null;
     if (!multi) {
       att = { name: "Attached ADU" };
-      if (band === "very steep" || band === "steep") { att.level = "check"; att.verdict = "Possible, but costly"; att.why = "Built onto the side or back of your home with its own entry. On a " + slope + "% slope it still needs foundation work, but less than a separate unit."; }
-      else if (maxFit != null && maxFit < 300 && !big) { att.level = "check"; att.verdict = "Tight"; att.why = "Built onto the home with its own entry, it needs less land than a separate unit, but open space looks tight here. The site audit shows if a small addition fits."; }
+      if (band === "very steep" || band === "steep") { att.level = "check"; att.verdict = "Possible, but costly"; att.why = "Built onto your home with its own entry. On a " + slope + "% slope it still needs foundation work, but less than a separate unit."; }
+      else if (maxFit != null && maxFit < 300 && !big) { att.level = "check"; att.verdict = "Tight"; att.why = "Built onto the home with its own entry, it needs less land than a separate unit, but open space is tight here. The site audit shows if a small addition fits."; }
       else { att.level = "ok"; att.verdict = "Looks possible"; att.why = "Built onto the side or back of your home with its own entry. It needs less open land than a separate unit and can share the home's utilities."; }
       if (hoa) att.why += " Your HOA must also approve it.";
     }
 
-    // 4. Junior ADU (single-family only)
+    // 4. Junior ADU
     var jadu = { name: "Junior ADU (inside the home)" };
     if (multi) { jadu.level = "na"; jadu.verdict = "Not allowed"; jadu.why = "Junior ADUs are only allowed in single-family homes, not in a duplex or other multi-unit building."; }
     else {
       var beds = pc && pc.beds > 0 ? pc.beds : 0;
       jadu.level = "ok"; jadu.verdict = "Looks possible";
       jadu.why = "Up to 500 sq ft inside your home, usually a bedroom with a small kitchen and its own door. No new building, so slope and yard size don't matter. The owner must live on the property." + (hoa ? " Your HOA must also approve it." : "") +
-        (beds >= 3 ? " With " + beds + " bedrooms, one could become the junior ADU." : beds > 0 ? " With " + beds + " bedroom" + (beds > 1 ? "s" : "") + ", it takes space from the main home, so it fits best if you have a room you don't use." : "");
+        (beds >= 3 ? " With " + beds + " bedrooms, one could become the junior ADU." : beds > 0 ? " With " + beds + " bedroom" + (beds > 1 ? "s" : "") + ", it fits best if you have a room you don't use." : "");
     }
-
-    // The option they picked first, then the others
     if (garagePick) opts.push(gar, det); else opts.push(det, gar);
     if (att) opts.push(att);
     opts.push(jadu);
 
-    // Bottom line: "You might not be able to do this, but you can do that"
+    // Bottom line
     var alt = multi ? "converting a garage or other unused space in the building" : "a garage conversion, an attached ADU or a junior ADU inside your home";
     var altShort = multi ? "converting unused space in the building" : "a garage conversion or a junior ADU inside your home";
+    var tc = function (t) { return String(t).toLowerCase().replace(/([a-z])/g, function (m) { return m.toUpperCase(); }); };
     var bottom, tone;
     if (garagePick) {
       tone = "good";
       bottom = "A garage conversion works on most lots because it reuses the building you already have" + ifHoa + ". " +
-        (det.level === "ok" ? "If you want more space, your lot also looks like it can fit a detached ADU." : det.level === "no" ? "A separate detached unit looks unlikely on this lot, so the garage is your best path." : "A separate detached unit would need a closer look on the site audit.");
-    } else if (det.level === "ok") {
-      tone = "good";
-      bottom = "Your lot looks like it can fit the " + n0(detSize) + " sq ft detached ADU you picked" + ifHoa + ". We confirm the exact placement, setbacks and utilities on the site audit.";
-    } else if (det.level === "no") {
-      tone = "warn";
-      bottom = "You might not be able to build a detached ADU here because " + (band === "very steep" ? "the ground is very steep" : "there isn't enough open land") + ", but you can still look at " + alt + ifHoa + ".";
-    } else if (det.verdict === "A smaller size may fit") {
-      tone = "warn";
-      bottom = "A " + n0(detSize) + " sq ft detached ADU looks too big for the open land, but one around " + n0(maxFit) + " sq ft may fit. You could also do " + altShort + ifHoa + ".";
-    } else if (band === "steep") {
-      tone = "warn";
-      bottom = "A detached ADU is possible on this slope but will likely cost more to build. " + (multi ? "Converting unused space in the building" : "A garage conversion or a junior ADU") + " avoids most of that extra cost" + ifHoa + ".";
-    } else {
-      tone = "info";
-      bottom = "We couldn't check your lot size automatically, so use the space guide for the detached ADU below. If the yard is too small, " + altShort + " can still work" + ifHoa + ".";
+        (det.level === "ok" ? "If you want more space, your lot also looks able to fit a detached ADU." : det.level === "no" ? "A separate detached unit looks unlikely on this lot, so the garage is your best path." : "A separate detached unit would need a closer look on the site audit.");
+    } else if (det.level === "ok") { tone = "good"; bottom = "Your lot looks able to fit the " + n0(detSize) + " sq ft detached ADU you picked" + ifHoa + ". We confirm the exact placement, utilities and city rules on the site audit."; }
+    else if (det.level === "no") { tone = "warn"; bottom = "You might not be able to build a detached ADU in the backyard because " + (band === "very steep" ? "the ground is very steep" : "there isn't enough open land") + ", but you can still look at " + alt + ifHoa + "."; }
+    else if (det.verdict === "A smaller size fits") { tone = "warn"; bottom = "A " + n0(detSize) + " sq ft detached ADU looks too big for your open land, but one of about " + n0(maxFit) + " sq ft fits. You could also look at " + altShort + ifHoa + "."; }
+    else if (det.verdict === "City limits apply") { tone = "warn"; bottom = "A detached ADU may be limited here by LA's hillside and fire rules, but " + altShort + " is usually still possible" + ifHoa + ". We check the city's limits on the site audit."; }
+    else if (band === "steep") { tone = "warn"; bottom = "A detached ADU is possible on this slope but will likely cost more to build. " + (multi ? "Converting unused space in the building" : "A garage conversion or a junior ADU") + " avoids most of that extra cost" + ifHoa + "."; }
+    else { tone = "info"; bottom = "We couldn't map your lot automatically, so use the space guide for the detached ADU. If the yard is too small, " + altShort + " can still work" + ifHoa + "."; }
+
+    // Facts with confidence labels
+    var facts = [];
+    facts.push({ label: "Lot size", value: L ? n0(L) + " sq ft" : "Not available", conf: geo ? "Measured" : L ? "Measured" : "Not available" });
+    facts.push({ label: "Largest clear spot for a detached ADU", value: maxFit != null && maxFit < 300 ? "Too small for a separate unit" : geo && geo.rect ? geo.rect.w + " x " + geo.rect.h + " ft (" + n0(Math.min(maxFit, 1200)) + " sq ft fits)" : maxFit != null ? "About " + n0(maxFit) + " sq ft fits" : "Not available", conf: maxFit != null ? spaceConf : "Not available" });
+    facts.push({ label: "Ground slope " + (slopeWhere === "buildable area" ? "where it would go" : "around the home"), value: slope == null ? "Not available" : "About " + slope + "%" + (slopeMax && slopeMax > slope + 4 ? ", up to " + slopeMax + "%" : ""), conf: slope == null ? "Not available" : "Measured" });
+    facts.push({ label: "Existing detached building", value: garageSeen ? "About " + n0(garageSeen.area) + " sq ft (likely garage)" : geo ? "None found" : "Not available", conf: geo ? "Measured" : "Not available" });
+    if (geo && geo.poolCheck) facts.push({ label: "Pool in an aerial photo", value: geo.pools && geo.pools.length ? "Yes, about " + n0(geo.pools[0]) + " sq ft (kept clear)" : poolOnRecord ? "None seen, but the county lists one" : "None seen", conf: "Estimated" });
+    facts.push({ label: "Fire hazard zone", value: fire ? fire.zone : "Not available", conf: fire ? "Measured" : "Not available" });
+    facts.push({ label: "Flood zone", value: flood ? (flood.special ? "Zone " + flood.zone + " (high risk)" : "Zone " + flood.zone) : "Not available", conf: flood ? "Measured" : "Not available" });
+    facts.push({ label: "Transit within 1/2 mile (parking waiver)", value: transit && transit.miles != null ? (nearTransit ? "Yes, about " + transit.miles + " mi" : "No, nearest about " + transit.miles + " mi") : transit ? "No stop within 1/2 mile" : "Not available", conf: transit ? "Estimated" : "Not available" });
+    if (ov.hillside !== undefined && ov.hillside !== null) {
+      var plans = (ov.specificPlans || []).filter(function (p) { return !/alcohol|sign|billboard|transportation corridor/i.test(p); });  // plans that don't touch home building
+      var la = [ov.hillside ? "Hillside Area" : "", ov.hpoz ? "Historic zone: " + tc(ov.hpoz) : "", plans.length ? "Specific plan: " + tc(plans[0]) : ""].filter(Boolean);
+      facts.push({ label: "City of LA overlays", value: la.length ? la.join("; ") : "None found", conf: "Measured" });
     }
 
-    // Also worth knowing (at most 3)
-    if (pc && /^\d{4}$/.test(pc.yearBuilt || "") && +pc.yearBuilt < 1960) notes.push("Your home was built in " + pc.yearBuilt + ". Older homes often need a bigger electrical panel or a new sewer line to add a unit, so plan for it. We check both on the site audit.");
+    // Also worth knowing
+    if (poolOnRecord && !(geo && geo.pools && geo.pools.length) && det.level !== "no") notes.push("The county record shows a pool. Pools aren't in the building maps, so if it sits in the open area the clear spot may be smaller than shown.");
+    if (fireVH) notes.push("Very High fire hazard zone: new buildings need fire-resistant construction, which adds cost, and some cities add ADU limits.");
+    else if (fireHigh) notes.push("High fire hazard zone: expect fire-resistant materials for a new unit.");
+    if (floodSpecial) notes.push("High-risk flood zone (" + flood.zone + "): a new unit usually must be raised above flood level and needs a flood permit.");
+    if (ov.hpoz) notes.push("Historic preservation zone (" + ov.hpoz + "): the city reviews the design before a permit.");
+    if (nearTransit === false && !garagePick) notes.push("No transit within 1/2 mile, so the city may ask for one parking space for the ADU (garage conversions never need replacement parking).");
+    if (pc && /^\d{4}$/.test(pc.yearBuilt || "") && +pc.yearBuilt < 1960) notes.push("Your home was built in " + pc.yearBuilt + ". Older homes often need a bigger electrical panel or a new sewer line to add a unit. We check both on the site audit.");
     if (band === "moderate" && det.level !== "no") notes.push("A slope of about " + slope + "% is usually buildable, but it can add grading, drainage and foundation cost.");
     if (big) notes.push("On a lot this size, space isn't the limit. The distance to the sewer line and power usually drives the cost.");
-    if (band === "unknown") notes.push("We couldn't measure the ground slope for this address. If your yard is on a hill, a detached unit costs more; a garage conversion or junior ADU avoids most of that.");
 
-    var checked = [pc ? "LA County Assessor lot record" + (L ? " (" + n0(L) + " sq ft lot" + (B ? ", " + n0(B) + " sq ft home" : "") + ")" : "") : "", slope != null ? "USGS ground elevation around the home" : "", "your answers"].filter(Boolean);
-    return { slope: slope, relief: relief, slopeBand: band, open: open, need: need, maxFit: maxFit, detSize: detSize, side: side, side2: side2, tone: tone, bottom: bottom, options: opts, notes: notes.slice(0, 3), checked: checked };
+    var sources = (site.sources || []).slice();
+    if (!sources.length) sources = [pc ? "LA County Assessor lot record" : "", slope != null ? "USGS ground elevation" : ""].filter(Boolean);
+    sources.push("your answers");
+    return { geo: geo, slope: slope, slopeMax: slopeMax, relief: relief, slopeBand: band, open: open, need: need, maxFit: maxFit, detSize: detSize, side: side, side2: side2,
+      tone: tone, bottom: bottom, options: opts, facts: facts, notes: notes.slice(0, 3), sources: sources, measured: !!geo,
+      checked: sources };
   }
 
   function build(JsPDF, input) {
@@ -535,79 +582,114 @@
     })();
 
     // ================= PAGE 3: LOT FIT CHECK =================
-    // Which ADU types this lot can realistically hold (lotFit above): slope, open land, and what else could work
+    // What this lot can realistically hold (lotFit above): a site diagram, measured facts with their confidence,
+    // the bottom line, each ADU option and the sources behind it. Space-aware: optional parts drop before overflow.
     newPage();
     var fit = lotFit(input);
     var n0 = function (v) { return Math.round(v).toLocaleString("en-US"); };
-    var srcList = fit.checked.length > 1 ? fit.checked.slice(0, -1).join(", ") + " and " + fit.checked[fit.checked.length - 1] : fit.checked[0];
-    heading(3, "Lot fit check: what your lot can hold", "A common-sense look at which kinds of ADU are realistic on this lot, from " + srcList + ". It is not a survey, a soils report or a city decision. We confirm it on the site audit.");
+    heading(3, "Lot fit check: what your lot can hold", fit.measured
+      ? "We mapped your lot from public records: the parcel outline, the buildings on it, the ground slope and official hazard maps. It is not a survey or a city decision, and we confirm it on the site audit."
+      : "A common-sense look at which kinds of ADU are realistic here, from the public records we could reach. It is not a survey or a city decision, and we confirm it on the site audit.");
+    var CONF = { Measured: [C.green, C.greenSoft], Estimated: [C.orangeInk, C.orangeSoft], "Not available": [C.muted, C.mist] };
     (function () {
-      var BAND = { flat: "Close to flat", moderate: "Gentle slope, buildable", steep: "Steep for building", "very steep": "Very steep, hillside lot" };
-      var tiles = [
-        ["Ground slope", fit.slope == null ? "Not measured" : "About " + fit.slope + "%", fit.slope == null ? "We check it on the site audit" : BAND[fit.slopeBand] + (fit.relief != null ? ", " + fit.relief + " ft change nearby" : "")],
-        ["Open land (estimate)", fit.open == null ? "No lot record" : "About " + n0(fit.open) + " sq ft", fit.open == null ? "Measure it with the guide below" : "Lot minus home, garage, drive, front yard"],
-        ["A detached unit needs", "About " + n0(fit.need) + " sq ft", n0(fit.detSize) + " sq ft unit with 4 ft around it"]
-      ];
-      var gap = 8, tw = (CW - 2 * gap) / 3, th = 52;
-      tiles.forEach(function (t, i) {
-        var tx = M + i * (tw + gap);
-        fill(C.mist); doc.roundedRect(tx, y, tw, th, 7, 7, "F");
-        font("bold", 7.5, C.muted); doc.text(t[0].toUpperCase(), tx + 10, y + 15);
-        font("bold", 12.5, C.deep); fitSize(t[1], tw - 20, 12.5, 9); doc.text(plain(t[1]), tx + 10, y + 32);
-        font("normal", 8, C.muted); fitSize(t[2], tw - 20, 8, 6.5); doc.text(plain(t[2]), tx + 10, y + 44);
+      var top = y, gap = 12, dr = fit.geo && fit.geo.drawing && fit.geo.drawing.parcel && fit.geo.drawing.parcel.length > 2 ? fit.geo.drawing : null;
+      var dw = dr ? 190 : 0, fx = M + (dr ? dw + gap : 0), fw = W - M - fx, pillW = 62, labW = (fw - pillW - 8) * 0.5, valW = fw - pillW - 8 - labW;
+      // facts
+      var fy = top;
+      fill(C.navy); doc.roundedRect(fx, fy, fw, 18, 5, 5, "F");
+      font("bold", 7.5, C.white); doc.text("WHAT WE CHECKED", fx + 8, fy + 12); doc.text("HOW SURE", fx + fw - 8, fy + 12, { align: "right" });
+      fy += 22;
+      fit.facts.forEach(function (f, i) {
+        font("bold", 8.4); var ll = wrap(f.label, labW - 8);
+        font("normal", 8.4); var vl = wrap(f.value, valW - 6);
+        var rh = Math.max(ll.length, vl.length) * 10.6 + 7;
+        if (i % 2 === 0) { fill(C.mist); doc.rect(fx, fy - 2, fw, rh, "F"); }
+        font("bold", 8.4, C.deep); doc.text(ll, fx + 8, fy + 8, { lineHeightFactor: 1.26 });
+        font("normal", 8.4, C.ink); doc.text(vl, fx + labW, fy + 8, { lineHeightFactor: 1.26 });
+        var cc = CONF[f.conf] || CONF["Not available"];
+        fill(cc[1]); doc.roundedRect(fx + fw - pillW - 4, fy + 0.5, pillW, 12, 6, 6, "F");
+        font("bold", 6.8, cc[0]); doc.text(f.conf, fx + fw - 4 - pillW / 2, fy + 8.8, { align: "center" });
+        fy += rh;
       });
-      y += th + 12;
+      var blockH = Math.max(fy - top, dr ? 170 : 0);
+      // site diagram (feet, front line along the bottom)
+      if (dr) {
+        fill(C.white); stroke(C.line); doc.setLineWidth(0.8); doc.roundedRect(M, top, dw, blockH, 8, 8, "FD");
+        var xs = dr.parcel.map(function (p) { return p[0]; }), ys = dr.parcel.map(function (p) { return p[1]; });
+        var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+        var boxW = dw - 24, boxH = blockH - 44, sc = Math.min(boxW / Math.max(1, x1 - x0), boxH / Math.max(1, y1 - y0));
+        var ox = M + 12 + (boxW - (x1 - x0) * sc) / 2, oy = top + 10 + (boxH - (y1 - y0) * sc) / 2;
+        var PX = function (p) { return [ox + (p[0] - x0) * sc, oy + (y1 - p[1]) * sc]; };
+        var shape = function (pts, style) { var q = pts.map(PX); doc.lines(q.slice(1).map(function (p, i) { return [p[0] - q[i][0], p[1] - q[i][1]]; }), q[0][0], q[0][1], [1, 1], style, true); };
+        fill([238, 246, 240]); stroke(C.navy); doc.setLineWidth(1.2); shape(dr.parcel, "FD");
+        if (dr.rect) { fill([170, 222, 186]); stroke(C.green); doc.setLineWidth(1); shape(dr.rect, "FD"); }
+        fill([168, 176, 186]); stroke([120, 128, 138]); doc.setLineWidth(0.5);
+        (dr.buildings || []).forEach(function (b) { if (b.length > 2) shape(b, "FD"); });
+        fill([150, 210, 235]); stroke([60, 140, 190]);
+        (dr.pools || []).forEach(function (b) { if (b.length > 2) shape(b, "FD"); });
+        stroke(C.orange); doc.setLineWidth(3);
+        [dr.front].concat(dr.streets || []).forEach(function (sg) { var a = PX(sg[0]), b = PX(sg[1]); doc.line(a[0], a[1], b[0], b[1]); });
+        doc.setLineWidth(0.6);
+        var ly = top + blockH - 26;
+        var key = [[C.green, [170, 222, 186], "Largest clear spot"], [[120, 128, 138], [168, 176, 186], "Buildings"], [C.orange, C.orange, "Street side"]];
+        if ((dr.pools || []).length) key.push([[60, 140, 190], [150, 210, 235], "Pool (aerial photo)"]);
+        key.forEach(function (k, i) {
+          var kx = M + 10 + (i % 2) * 92, ky = ly + Math.floor(i / 2) * 11;
+          fill(k[1]); stroke(k[0]); doc.rect(kx, ky - 6, 8, 6, "FD");
+          font("normal", 7, C.muted); doc.text(k[2], kx + 11, ky - 0.8);
+        });
+      }
+      y = top + blockH + 10;
+      doc.setLineWidth(0.6);
+      budget("lot fit facts");
     })();
     var TONE = { good: [C.greenSoft, C.green, [20, 80, 50]], warn: [C.orangeSoft, C.orange, [90, 58, 0]], info: [C.sky, C.navy, C.deep] }[fit.tone];
     callout("Bottom line: " + fit.bottom, TONE[0], TONE[1], TONE[2]);
+    // Sources box is anchored to the bottom; work out its height first so the options and notes know their room
+    var srcNote = "Sources: " + fit.sources.join("; ") + ". Measured = read from maps and records for this parcel. Estimated = worked out with typical rules. Building maps date from 2020 to 2024, so anything built since may be missing, and covered or dark pools, patios, fences, trees, easements and utility lines may not show. The site audit is where we confirm the fit.";
+    font("normal", 7.4); var srcLines = wrap(srcNote, CW - 24), srcH = srcLines.length * 9.4 + 12;
     sub("Your ADU options on this lot");
-    y += 8;
+    y += 6;
     (function () {
       var LV = { ok: [C.green, C.greenSoft], check: [C.orangeInk, C.orangeSoft], no: [[166, 38, 38], [252, 234, 234]], na: [C.muted, C.mist] };
-      var nameW = 128, pillW = 118, whyX = M + 14 + nameW + pillW + 10, whyW = W - M - 12 - whyX;
+      var nameW = 118, pillW = 108, whyX = M + 12 + nameW + pillW + 8, whyW = W - M - 10 - whyX;
       fit.options.forEach(function (o) {
         var lv = LV[o.level] || LV.na;
-        font("normal", 8.8); var lines = wrap(o.why, whyW);
-        font("bold", 10); var nl = wrap(o.name, nameW - 6);
-        var rh = Math.max(lines.length * 11.6, nl.length * 12.5, 18) + 16;
-        fill(C.white); stroke(C.line); doc.setLineWidth(0.8); doc.roundedRect(M, y, CW, rh, 7, 7, "FD");
-        fill(lv[0]); doc.rect(M, y + 6, 4, rh - 12, "F");
-        font("bold", 10, C.deep); doc.text(nl, M + 14, y + 18, { lineHeightFactor: 1.25 });
-        fill(lv[1]); doc.roundedRect(M + 14 + nameW, y + 8, pillW, 16, 8, 8, "F");
-        font("bold", 8, lv[0]); fitSize(o.verdict, pillW - 12, 8, 6.5); doc.text(plain(o.verdict), M + 14 + nameW + pillW / 2, y + 19, { align: "center" });
-        font("normal", 8.8, C.ink); doc.text(lines, whyX, y + 17, { lineHeightFactor: 1.32 });
-        y += rh + 6;
+        font("normal", 8.3); var lines = wrap(o.why, whyW);
+        font("bold", 9.4); var nl = wrap(o.name, nameW - 6);
+        var rh = Math.max(lines.length * 10.6, nl.length * 11.5, 16) + 12;
+        fill(C.white); stroke(C.line); doc.setLineWidth(0.8); doc.roundedRect(M, y, CW, rh, 6, 6, "FD");
+        fill(lv[0]); doc.rect(M, y + 5, 4, rh - 10, "F");
+        font("bold", 9.4, C.deep); doc.text(nl, M + 12, y + 15, { lineHeightFactor: 1.22 });
+        fill(lv[1]); doc.roundedRect(M + 12 + nameW, y + 6, pillW, 15, 7.5, 7.5, "F");
+        font("bold", 7.6, lv[0]); fitSize(o.verdict, pillW - 10, 7.6, 6.2); doc.text(plain(o.verdict), M + 12 + nameW + pillW / 2, y + 16, { align: "center" });
+        font("normal", 8.3, C.ink); doc.text(lines, whyX, y + 14, { lineHeightFactor: 1.28 });
+        y += rh + 5;
       });
       doc.setLineWidth(0.6);
       budget("lot fit options");
     })();
+    var room = function () { return BOTTOM - srcH - 8 - y; };
     var detRow = fit.options.filter(function (o) { return /detached/i.test(o.name); })[0];
-    if (fit.open == null && detRow && detRow.level !== "no") {
-      sub("Check the space yourself");
-      para("Measure the clear, fairly level area behind or beside your home, away from the house, trees and any shed. A " + n0(fit.detSize) + " sq ft detached ADU needs about " + n0(fit.need) + " sq ft, roughly " + fit.side + " x " + fit.side2 + " ft, at least 4 ft from the back and side property lines. California law says local lot-coverage and floor-area rules can't block an ADU of at least 800 sq ft with 4 ft side and rear setbacks, so real space is usually what decides it.", 9, C.ink);
+    if (!fit.measured && fit.open == null && detRow && detRow.level !== "no") {
+      var guide = "Measure the clear, fairly level area behind or beside your home. A " + n0(fit.detSize) + " sq ft detached ADU needs about " + n0(fit.need) + " sq ft, roughly " + fit.side + " x " + fit.side2 + " ft, at least 4 ft from the back and side lines. California law says local lot-coverage and floor-area rules can't block an ADU of at least 800 sq ft with 4 ft side and rear setbacks.";
+      if (room() > paraH(guide, 8.6) + 22) { sub("Check the space yourself"); para(guide, 8.6, C.ink); }
     }
-    if (fit.notes.length) {
-      sub("Also worth knowing");
-      y += 4;
+    if (fit.notes.length && room() > 40) {
+      sub("Also worth knowing"); y += 3;
       fit.notes.forEach(function (t) {
-        font("normal", 9); var nl2 = wrap(t, CW - 22);
-        fill(C.orange); doc.circle(M + 5, y + 7, 2.4, "F");
-        font("normal", 9, C.ink); doc.text(nl2, M + 16, y + 10, { lineHeightFactor: 1.35 });
-        y += nl2.length * 12.2 + 8;
+        font("normal", 8.6); var nl2 = wrap(t, CW - 22), nh = nl2.length * 11.2 + 5;
+        if (room() < nh) return;
+        fill(C.orange); doc.circle(M + 5, y + 6, 2.2, "F");
+        font("normal", 8.6, C.ink); doc.text(nl2, M + 15, y + 9, { lineHeightFactor: 1.3 });
+        y += nh;
       });
-      budget("lot fit notes");
     }
-    (function () {
-      var how = [fit.open != null ? "the open-land figure subtracts your home's footprint, about 400 sq ft for a garage and driveway, and a 20 ft front yard from the lot size" : "",
-                 fit.slope != null ? "slope comes from USGS bare-earth elevation points around your home" : ""].filter(Boolean);
-      var note = "How we checked: " + (how.length ? how.join("; ") + "." : "we couldn't reach public lot records for this address, so this is based on your answers and general California ADU rules.") + " Fences, trees, easements, utility lines and city overlays can change the answer, and the site audit is where we confirm it.";
-      font("normal", 8); var nl3 = wrap(note, CW - 28), nh = nl3.length * 10.6 + 14;
-      y = Math.max(y + 6, BOTTOM - nh);
-      fill(C.mist); doc.roundedRect(M, y, CW, nh, 7, 7, "F");
-      font("normal", 8, C.muted); doc.text(nl3, M + 14, y + 13, { lineHeightFactor: 1.3 });
-      y += nh;
-      budget("lot fit method note");
-    })();
+    y = Math.max(y + 6, BOTTOM - srcH);
+    fill(C.mist); doc.roundedRect(M, y, CW, srcH, 7, 7, "F");
+    font("normal", 7.4, C.muted); doc.text(srcLines, M + 12, y + 11, { lineHeightFactor: 1.27 });
+    y += srcH;
+    budget("lot fit sources");
 
     // ================= PAGE 4: BUILD BUDGET & CASH-FLOW ARCHITECTURE =================
     // Drawn normally first; if a long intro makes it overflow, the page is deleted and drawn again tighter

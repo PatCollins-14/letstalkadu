@@ -258,6 +258,7 @@ app.post("/api/parcel", express.json({ limit: "2kb" }), async (req, res) => {
 // gives the general grade of the ground, which the PDF's lot fit check uses (a steep yard makes a detached ADU
 // costly or impractical). Coordinates come from the page (Google or the parcel record), or the free US Census
 // geocoder when the page has none. Any failure answers found:false and the PDF says the slope wasn't measured.
+const { siteCheck } = require("./lib/site-check");
 const EPQS_URL = process.env.EPQS_URL || "https://epqs.nationalmap.gov/v1/json";
 const CENSUS_URL = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress";
 const siteCache = new Map();  // rounded lat,lng -> { at, body }, 30 days
@@ -291,6 +292,7 @@ function planeGrade(pts) {
   return Math.sqrt(b * b + c * c) * 100;
 }
 app.post("/api/site", express.json({ limit: "2kb" }), async (req, res) => {
+  req.setTimeout(45000);
   res.set("Cache-Control", "no-store");
   if (!sameSite(req)) return res.status(403).json({ found: false, reason: "origin" });
   const b = req.body || {}, address = String(b.address || "").slice(0, 200);
@@ -304,17 +306,11 @@ app.post("/api/site", express.json({ limit: "2kb" }), async (req, res) => {
   const key = lat.toFixed(4) + "," + lng.toFixed(4);
   const hit = siteCache.get(key);
   if (hit && Date.now() - hit.at < 30 * 86400000) return res.json(hit.body);
-  const R = 15, ftPerM = 3.28084, mLat = 111320, mLng = 111320 * Math.cos(lat * Math.PI / 180);
-  const ring = [[0, 0]];
-  for (let i = 0; i < 8; i++) ring.push([R * Math.cos(i * Math.PI / 4), R * Math.sin(i * Math.PI / 4)]);  // [east m, north m]
-  const zs = await Promise.all(ring.map(([e, n]) => groundFtRetry(lat + n / mLat, lng + e / mLng)));
-  const pts = ring.map(([e, n], i) => ({ x: e * ftPerM, y: n * ftPerM, z: zs[i] })).filter((p) => isFinite(p.z));
-  if (pts.length < 6 || !isFinite(zs[0])) return res.json({ found: false, reason: "elevation lookup failed" });
-  const grade = planeGrade(pts), zv = pts.map((p) => p.z);
-  if (!isFinite(grade)) return res.json({ found: false, reason: "elevation lookup failed" });
-  const body = { found: true, source: "USGS 3DEP elevation", located: from, points: pts.length, radiusFt: Math.round(R * ftPerM),
-    slopePct: Math.round(grade * 10) / 10, reliefFt: Math.round((Math.max(...zv) - Math.min(...zv)) * 10) / 10 };
-  siteCache.set(key, { at: Date.now(), body }); if (siteCache.size > 5000) siteCache.clear();
+  // Full lot fit check (lib/site-check.js): parcel outline, buildings, buildable area, slope, overlays, transit
+  const body = await siteCheck({ lat, lng, address, streetPoint: from === "census" ? [lng, lat] : null });
+  body.located = from;
+  if (!body.slope && !body.geo) return res.json({ found: false, reason: "lookups failed", missing: body.missing });
+  if (!body.missing.length) { siteCache.set(key, { at: Date.now(), body }); if (siteCache.size > 5000) siteCache.clear(); }
   res.json(body);
 });
 
