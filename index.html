@@ -512,6 +512,14 @@
     .b-fit .yes i { background: var(--green-soft); color: var(--green); }
     .b-fit .no i { background: #fdecea; color: #a8321f; }
     .borrow-out .btn { margin-top: auto; }
+    /* FinanceMyADU offer: the After Renovation Value (ARV) HELOC for homeowners short on equity today */
+    .arv-offer { display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; margin-top: 18px; padding: 22px 26px; border: 1.5px solid var(--navy); border-radius: 18px; background: var(--sky); }
+    .arv-offer .arv-copy { flex: 1 1 420px; min-width: 0; }
+    .arv-offer .arv-k { display: block; margin-bottom: 4px; font: 700 12px/1.3 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--orange-ink); }
+    .arv-offer h3 { margin: 0 0 6px; font: 700 22px/1.25 var(--serif); color: var(--navy-deep); text-wrap: balance; }
+    .arv-offer p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+    .arv-offer .btn { flex: none; }
+    @media (max-width: 640px) { .arv-offer { padding: 18px; } .arv-offer h3 { font-size: 20px; } .arv-offer .btn { width: 100%; } }
     .b-want { margin: 4px 0 6px; padding-top: 12px; border-top: 1px solid rgba(34,61,120,.14); }
     .b-want input { background: #fff; }
     .b-want-n { display: block; min-height: 0; margin-top: 6px; font-size: 13.5px; font-weight: 600; }
@@ -1304,6 +1312,14 @@
           <a class="btn btn-primary" href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Get&nbsp;Pre-qualified</a>
         </div>
       </div>
+      <div class="arv-offer" id="arv-offer">
+        <div class="arv-copy">
+          <span class="arv-k">Not enough equity&nbsp;yet?</span>
+          <h3>Borrow on What Your Home Will Be Worth After the&nbsp;ADU</h3>
+          <p>An After Renovation Value (ARV) HELOC is based on your home's value once the ADU is built, not what it's worth today, so it may open up more room to borrow. No refinance, and your first mortgage stays in&nbsp;place.</p>
+        </div>
+        <a class="btn btn-navy" href="https://financemyadu.io/" target="_blank" rel="noopener">See the ARV HELOC at&nbsp;FinanceMyADU</a>
+      </div>
       <details class="disc"><summary><svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span class="disc-s">Disclaimers &amp; licensing&nbsp;details</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><span class="disc-t">Program terms as of November 2026 and subject to change. The estimate above is not a pre-qualification, approval or offer to lend. Credit, income, DTI, cash flow and home value (by AVM) are verified during underwriting. The first credit check is a soft pull; a hard credit pull may be needed later to finish the loan. Rates, APR and fees depend on your credit and loan. A HELOC is secured by your home. Loans offered by E Mortgage Capital Inc., NMLS&nbsp;#1416824.</span></details>
     </div>
   </section>
@@ -1625,6 +1641,7 @@
             <li><a href="tel:+19497872662">(949) 787-2662</a></li>
             <li>Mon – Sat: 7:30 AM – 6:00 PM PST</li>
             <li><a href="https://flow.avenfoundry.com/?t=31bce19d-e4f9-4cee-b881-65fc4daaead0" target="_blank" rel="noopener">Get&nbsp;Pre-qualified</a></li>
+            <li><a href="https://financemyadu.io/" target="_blank" rel="noopener">After Renovation Value (ARV)&nbsp;HELOC</a></li>
             <li><a href="#visit">Request Your Feasibility&nbsp;Walk</a></li>
           </ul>
         </div>
@@ -1745,6 +1762,7 @@
       var where = sec ? (sec.id || sec.tagName.toLowerCase()) : "page";
       if (/^tel:/.test(href)) track("click_call", { link_location: where });
       else if (/avenfoundry\.com/.test(href)) track("click_prequal", { link_location: where });
+      else if (/financemyadu\.io/.test(href)) track("click_arv_heloc", { link_location: where });
       else if (/theradcrm\.com\/widget\/bookings/.test(href)) track("click_booking", { link_location: where });
     });
     function opexFor(rent, cost) {
