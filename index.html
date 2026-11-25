@@ -1763,7 +1763,7 @@
       if (/^tel:/.test(href)) track("click_call", { link_location: where });
       else if (/avenfoundry\.com/.test(href)) track("click_prequal", { link_location: where });
       else if (/financemyadu\.io/.test(href)) track("click_arv_heloc", { link_location: where });
-      else if (/theradcrm\.com\/widget\/bookings/.test(href)) track("click_booking", { link_location: where });
+      else if (/(theradcrm|leadconnectorhq)\.com\/widget\/bookings/.test(href)) track("click_booking", { link_location: where });
     });
     function opexFor(rent, cost) {
       var o = CONFIG.opex, m = function (rate) { return Math.round(cost * rate / 12); };
@@ -2435,7 +2435,7 @@
     // Built in the visitor's browser from the same numbers as the on-page blueprint, then uploaded to
     // Uploadcare (the same public upload key letstalkadu.com already uses) so GHL can email the link.
     var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261120";  // the 6-page PDF layout (bump v= after editing it)
+    var BLUEPRINT_JS_URL = "js/blueprint-pdf.js?v=20261125";  // the 6-page PDF layout (bump v= after editing it)
     var UPLOADCARE_PUB_KEY = "d2af8620b6e710c3d6b2";
     var UPLOADCARE_CDN = "https://5omhtdjfai.ucarecd.net";
     var jsPdfReady = null;

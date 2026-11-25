@@ -88,7 +88,7 @@ app.post("/api/verify-email", express.json({ limit: "2kb" }), async (req, res) =
 // The forms post here so the CRM webhook address never reaches the browser. hPanel env vars:
 // TURNSTILE_SITE_KEY + TURNSTILE_SECRET_KEY switch the Cloudflare check on (both are needed, so one alone can't block leads),
 // GHL_WEBHOOK_URL is the private webhook. Until it is set, the address the page used before keeps leads flowing.
-const GHL_HOOK = process.env.GHL_WEBHOOK_URL || "https://services.leadconnectorhq.com/hooks/NWoKxKU6zYvUn98wlAty/webhook-trigger/9W0wu2UxPFz79BRvOulh";
+const GHL_HOOK = process.env.GHL_WEBHOOK_URL || "https://services.leadconnectorhq.com/hooks/aNjuMIMf9wT6oA6AKKsB/webhook-trigger/cXiTMFDXpQZXdtdgWL8F";
 const TS_VERIFY = process.env.TURNSTILE_VERIFY_URL || "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const leadHits = new Map();  // ip -> timestamps, 10 submissions per 10 minutes
 async function timedFetch(url, options, ms) {
